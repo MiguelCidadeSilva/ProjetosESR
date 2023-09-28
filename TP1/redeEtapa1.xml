@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<scenario name="/home/core/redeEtapa1.xml">
+<scenario name="/home/core/ProjetosESR/TP1/redeEtapa1.xml">
   <networks>
     <network id="6" name="sw1" type="SWITCH">
       <position x="120" y="210" lat="47.57725783668642" lon="-122.13070503248858" alt="2.0"/>
@@ -23,7 +23,7 @@
       </services>
     </device>
     <device id="3" name="Aladdin" type="PC" class="" image="">
-      <position x="208" y="91" lat="47.5783395344419" lon="-122.12951925631354" alt="2.0"/>
+      <position x="219" y="82" lat="47.57842134260687" lon="-122.12937103429167" alt="2.0"/>
       <services>
         <service name="DefaultRoute"/>
       </services>
@@ -70,7 +70,7 @@
     </link>
     <link node1="6" node2="3">
       <iface2 id="0" name="eth0" mac="00:00:00:aa:00:14" ip4="10.0.0.21" ip4_mask="24" ip6="2001::21" ip6_mask="64"/>
-      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0"/>
+      <options delay="0" bandwidth="10000000" loss="0.0" dup="0" jitter="0" unidirectional="0"/>
     </link>
     <link node1="6" node2="8">
       <iface2 id="0" name="eth0" mac="00:00:00:aa:00:15" ip4="10.0.0.1" ip4_mask="24" ip6="2001::1" ip6_mask="64"/>
@@ -82,7 +82,7 @@
     </link>
     <link node1="7" node2="4">
       <iface2 id="0" name="eth0" mac="00:00:00:aa:00:19" ip4="10.0.2.20" ip4_mask="24" ip6="2001:2::20" ip6_mask="64"/>
-      <options delay="0" bandwidth="0" loss="0.0" dup="0" jitter="0" unidirectional="0"/>
+      <options delay="0" bandwidth="1000000" loss="0.0" dup="0" jitter="0" unidirectional="0"/>
     </link>
     <link node1="7" node2="5">
       <iface2 id="0" name="eth0" mac="00:00:00:aa:00:1a" ip4="10.0.2.21" ip4_mask="24" ip6="2001:2::21" ip6_mask="64"/>
