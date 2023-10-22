@@ -8,22 +8,20 @@ import java.io.IOException;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public class ServerRP {
     Map<String,byte[]> content;
     public boolean loadContentServer(String server) {
-        boolean nosucess = false;
+        boolean nosucess = true;
         try {
             Socket clientSocket = new Socket(server, Ports.portDB);
             System.out.println("Connected to the server.");
             DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
             this.content = ProtocolLoadContent.desencapsulate(dis);
-        } catch (IOException e) {
-            nosucess = true;
-        }
+            nosucess = false;
+        } catch (IOException ignored) {}
         return nosucess;
     }
     public ServerRP(String fileIps)
@@ -37,6 +35,16 @@ public class ServerRP {
         } catch (IOException e) {
             System.out.println("Erro a carregar conteudo para o RP");
             throw new RuntimeException(e);
+        }
+    }
+
+    public void printDebug() {
+        for(String key : content.keySet())
+        {
+            StringBuilder r = new StringBuilder("[");
+            for(byte b : content.get(key))
+                r.append(b).append(" ");
+            System.out.println("(" + key + "," + r + "])");
         }
     }
 }

@@ -29,6 +29,7 @@ public class ServerDBExec {
     // file contem lista de ficheiros com conteudo
     public static void main(String [] args) throws IOException {
         ServerDB sdb = new ServerDB(args[0]);
+        sdb.printDebug();
         ServerSocket serverSocket = new ServerSocket(Ports.portDB);
         System.out.println("ServerDB is listening at the port " + Ports.portDB);
         while (true) {

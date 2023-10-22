@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collection;
 import java.util.HashMap;
@@ -18,6 +19,7 @@ public class ServerDB {
     // Carrega o conteudo dos ficheiros
     public ServerDB(String file) {
         try {
+            this.content = new HashMap<>();
             // Ficheiros que contem conteudo
             Collection<String> files = Files.readAllLines(Paths.get(file));
             // Percorrer cada um dos ficheiros e encher a variavel content
@@ -33,5 +35,15 @@ public class ServerDB {
     // Escreve o conteudo no socket
     public void writeContent(DataOutputStream dos) {
         ProtocolLoadContent.encapsulate(content,dos);
+    }
+
+    public void printDebug() {
+        for(String key : content.keySet())
+        {
+            StringBuilder r = new StringBuilder("[");
+            for(byte b : content.get(key))
+                r.append(b).append(" ");
+            System.out.println("(" + key + "," + r + "])");
+        }
     }
 }
