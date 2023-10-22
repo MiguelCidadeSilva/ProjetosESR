@@ -2,8 +2,6 @@ package Servers.Execs;
 
 import Servers.Classes.ServerRP;
 
-import java.io.IOException;
-
 public class ServerRPExec {
     // java nome_exec file
     // file contem os ips dos servidores que contem o conteudo

@@ -1,6 +1,5 @@
 package Servers.Execs;
 
-import Protocolos.ProtocolLoadContent;
 import Servers.Classes.ServerDB;
 import Servers.Utils.Ports;
 
@@ -8,11 +7,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 public class ServerDBExec {
     public static void atendeCliente(Socket clientSocket, ServerDB sdb) {
