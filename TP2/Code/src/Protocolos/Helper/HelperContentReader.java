@@ -22,4 +22,8 @@ public class HelperContentReader {
     public byte[] getBytesInfo(){
         return byteBuffer.array();
     }
+
+    public boolean hasContent() {
+        return byteBuffer.hasRemaining();
+    }
 }
