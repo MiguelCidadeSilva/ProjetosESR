@@ -1,7 +1,7 @@
-package Servers.Classes;
+package Nodes.Classes;
 
-import Protocolos.ProtocolLoadContent;
-import Servers.Utils.Ports;
+import Protocols.ProtocolLoadContent;
+import Nodes.Utils.Ports;
 
 import java.io.*;
 import java.net.Socket;
@@ -56,6 +56,9 @@ public class ServerRP extends ServerNode{
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public void clearResources(){}
 
     // No server RP não faz sentido este método.
     // Talvez criar uma classe nova que identifique os servers intermédios e tirar este médio da

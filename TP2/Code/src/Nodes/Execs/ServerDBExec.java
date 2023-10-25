@@ -1,7 +1,7 @@
-package Servers.Execs;
+package Nodes.Execs;
 
-import Servers.Classes.ServerDB;
-import Servers.Utils.Ports;
+import Nodes.Classes.ServerDB;
+import Nodes.Utils.Ports;
 
 import java.io.DataOutputStream;
 import java.io.IOException;

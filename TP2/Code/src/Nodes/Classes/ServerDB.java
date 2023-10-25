@@ -1,6 +1,6 @@
-package Servers.Classes;
+package Nodes.Classes;
 
-import Protocolos.ProtocolLoadContent;
+import Protocols.ProtocolLoadContent;
 
 import java.io.DataOutputStream;
 import java.io.IOException;

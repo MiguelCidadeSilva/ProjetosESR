@@ -1,6 +1,6 @@
-package Servers.Execs;
+package Nodes.Execs;
 
-import Servers.Classes.ServerRP;
+import Nodes.Classes.ServerRP;
 
 public class ServerRPExec {
     // java nome_exec file

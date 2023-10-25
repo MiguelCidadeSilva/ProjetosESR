@@ -1,12 +1,10 @@
-import Protocolos.Helper.HelperContentReader;
-import Protocolos.Helper.HelperContentWriter;
-import Protocolos.Helper.HelperProtocols;
+import Protocols.Helper.HelperContentReader;
+import Protocols.Helper.HelperContentWriter;
+import Protocols.Helper.HelperProtocols;
 
 import java.io.*;
 import java.net.DatagramPacket;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 public class Main {
     public static HelperContentWriter write() {

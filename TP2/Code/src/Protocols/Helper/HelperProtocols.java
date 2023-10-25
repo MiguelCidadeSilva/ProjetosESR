@@ -1,4 +1,4 @@
-package Protocolos.Helper;
+package Protocols.Helper;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
