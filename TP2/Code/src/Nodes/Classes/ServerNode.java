@@ -48,14 +48,21 @@ public class ServerNode {
         lock.readLock().unlock();
     }
 
-    public void removeClient(String resource, InetSocketAddress client){
-        lock.readLock().lock();
+    public boolean removeClient(String resource, InetSocketAddress client){
+        boolean r = false;
+        lock.writeLock().lock();
         if(this.clientsResourceMap.containsKey(resource)){
             resourceLocks.get(resource).writeLock().lock();
             this.clientsResourceMap.get(resource).remove(client);
             resourceLocks.get(resource).writeLock().unlock();
+            if(this.clientsResourceMap.get(resource).isEmpty()){
+                this.clientsResourceMap.remove(resource);
+                this.resourceLocks.remove(resource);
+                r=true;
+            }
         }
-        lock.readLock().unlock();
+        lock.writeLock().unlock();
+        return r;
     }
 
 
