@@ -12,7 +12,7 @@ import java.util.Map;
 public class ProtocolLoadContent{
 
     public static void encapsulate(Map<String,byte[]> files, DataOutputStream dos) {
-        int nrbytes = HelperContentWriter.calculateCapacity(0,files.keySet(),files.values());
+        int nrbytes = HelperContentWriter.calculateCapacity(0,files.keySet(),files.values(),null);
         HelperContentWriter hcw = new HelperContentWriter(nrbytes);
         files.forEach((key, value) -> {
             hcw.writeStr(key);
@@ -21,7 +21,7 @@ public class ProtocolLoadContent{
         HelperProtocols.writeContentTCP(hcw,dos);
     }
 
-    public static Map<String,byte[]> desencapsulate(DataInputStream dis) {
+    public static Map<String,byte[]> decapsulate(DataInputStream dis) {
         HelperContentReader hcr = HelperProtocols.readContentTCP(dis);
         Map<String,byte[]> res = new HashMap<>();
         while(hcr.hasContent()) {

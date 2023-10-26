@@ -1,5 +1,6 @@
 package Protocols.Helper;
 
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 
 public class HelperContentReader {
@@ -16,11 +17,20 @@ public class HelperContentReader {
         byteBuffer.get(array);
         return array;
     }
+    public byte readByte() {
+        return byteBuffer.get();
+    }
     public String readStr() {
         return new String(readBytes());
     }
     public byte[] getBytesInfo(){
         return byteBuffer.array();
+    }
+
+    public InetSocketAddress readIp() {
+        String ip = readStr();
+        int port = readInt();
+        return new InetSocketAddress(ip,port);
     }
 
     public boolean hasContent() {

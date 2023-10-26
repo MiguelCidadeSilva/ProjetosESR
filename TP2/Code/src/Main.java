@@ -8,7 +8,7 @@ import java.util.Arrays;
 
 public class Main {
     public static HelperContentWriter write() {
-        HelperContentWriter hcw = new HelperContentWriter(HelperContentWriter.calculateCapacity(2,Arrays.asList("Braga","SCB","ESR"), Arrays.asList(new byte[]{0, 1, 2, 3, 4})));
+        HelperContentWriter hcw = new HelperContentWriter(HelperContentWriter.calculateCapacity(2,Arrays.asList("Braga","SCB","ESR"), Arrays.asList(new byte[]{0, 1, 2, 3, 4}),null));
         hcw.writeInt(1921);
         hcw.writeStr("Braga");
         hcw.writeStr("SCB");

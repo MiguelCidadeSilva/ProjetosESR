@@ -1,5 +1,8 @@
 package Nodes.Classes;
 
+import Protocols.ProtocolBuildTree;
+
+import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -83,4 +86,23 @@ public class ServerNode {
     public void receiveResources() {}
     // Método que replica o conteudo recebido por todos os clientes
     public void sendResources() {}
+
+    public boolean receiveRequest(String resource, InetSocketAddress origin) {
+        // Ver se tem o recurso
+        // Se tiver recurso, returnar true
+        // Se não tiver recurso ver se há situação de loop
+        // Se não houver situação de loop, guardar num map <recurso, lista de origens> a origem associada ao recurso
+        // Contactar cada um dos vizinhos e guardar num map <vizinho, tempo de envio de request>
+        // ao fim de contactar cada um dos vizinhos, calcular o minimo de tempo usado para cada vizinho
+        // Se algum vizinho responder com loop, remover do map<vizinho,tempo de envio de request o vizinho>
+        // Se o map<vizinho,tempo de envio de request o vizinho> estiver vazio retornar falso
+        // pegar nesse vizinho com menor tempo
+        // adicionar a um map<recurso,vizinho>
+        // returnar false
+        return false;
+    }
+
+    public DatagramPacket answerRequest(boolean found) {
+        return found ? ProtocolBuildTree.encapsulateAnswerLoop() : ProtocolBuildTree.encapsulateAnswerFound();
+    }
 }

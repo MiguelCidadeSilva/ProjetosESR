@@ -37,7 +37,7 @@ public class ServerRP extends ServerNode{
             Socket clientSocket = new Socket(server, Ports.portDB);
             System.out.println("Connected to the server " + server + " .");
             DataInputStream dis = new DataInputStream(clientSocket.getInputStream());
-            Map<String,byte[]> content = ProtocolLoadContent.desencapsulate(dis);
+            Map<String,byte[]> content = ProtocolLoadContent.decapsulate(dis);
             clientSocket.close();
             loadContent(content);
             nosucess = false;
