@@ -1,37 +1,54 @@
 package Nodes.Classes;
 
+import Nodes.Utils.Debug;
 import Protocols.ProtocolLoadContent;
 
+import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class ServerDB {
-    private final Map<String,byte[]> content;
+    // private final Map<String,byte[]> content;
     // Carrega o conteudo dos ficheiros
+    private final Map<String,String> content;
     public ServerDB(String file) {
         try {
-            this.content = new HashMap<>();
-            // Ficheiros que contem conteudo
-            Collection<String> files = Files.readAllLines(Paths.get(file));
-            // Percorrer cada um dos ficheiros e encher a variavel content
-            for(String str : files) {
-                String[] aux = str.split("/");
+            content = new HashMap<>();
+            List<String> resources = Files.readAllLines(Paths.get(file));
+            for(String resource : resources) {
+                String[] aux = resource.split("/");
                 String name = aux[aux.length-1];
-                byte[] contentFile = Files.readAllBytes(Paths.get(str));
-                content.put(name,contentFile);
+                content.put(name,resource);
             }
+            System.out.println(content);
         } catch (IOException e) {
             System.out.println("Erro a carregar o servidor com o conteudo");
             throw new RuntimeException(e);
         }
     }
-    // Escreve o conteudo no socket
-    public void writeContent(DataOutputStream dos) {
-        ProtocolLoadContent.encapsulate(content,dos);
+
+    public void repondeRP(Socket socket) {
+        try {
+            System.out.println("Cliente recebido");
+            DataInputStream dis = new DataInputStream(socket.getInputStream());
+            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+            String[] aux = new String[1];
+            boolean isRequest = ProtocolLoadContent.isRequest(dis,aux);
+            System.out.println(isRequest);
+            if(isRequest)
+            {
+                byte[] contentFile = content.containsKey(aux[0]) ? Files.readAllBytes(Paths.get(content.get(aux[0]))) : new byte[0];
+                ProtocolLoadContent.encapsulateContent(contentFile,dos,true);
+            }
+            else
+                ProtocolLoadContent.encapsulateConnection(dos,true);
+            socket.close();
+        } catch (IOException e) {
+            System.out.println("Erro ao atender o cliente " + socket.getInetAddress().getHostAddress());
+        }
     }
 }

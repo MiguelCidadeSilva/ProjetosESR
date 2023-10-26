@@ -4,7 +4,11 @@ import java.util.List;
 import java.util.Map;
 
 public class Debug {
-
+    public static void printBytes(byte [] bytes) {
+        for(byte b : bytes)
+            System.out.print(b + " ");
+        System.out.println();
+    }
     public static void printDBRP(Map<String,byte[]> content) {
         for(String key : content.keySet())
         {

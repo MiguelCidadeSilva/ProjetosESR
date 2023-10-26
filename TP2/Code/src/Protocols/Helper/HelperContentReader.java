@@ -5,7 +5,7 @@ import java.nio.ByteBuffer;
 
 public class HelperContentReader {
     ByteBuffer byteBuffer;
-    protected HelperContentReader(byte [] data){
+    protected HelperContentReader(byte[] data){
         byteBuffer = ByteBuffer.wrap(data);
     }
     public int readInt() {

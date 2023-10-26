@@ -3,6 +3,7 @@ package Protocols.Helper;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -35,6 +36,10 @@ public class HelperContentWriter {
     }
 
     public static int calculateCapacity(int numbers_integer, Collection<String> strings, Collection<byte[]> bytes, InetSocketAddress ip){
+        if(bytes == null)
+            bytes = List.of();
+        if(strings == null)
+            strings = List.of();
         List<byte[]> aux = Stream.concat(strings.stream().map(String::getBytes), bytes.stream()).toList();
         int auxint = ip != null ? 4 + ip.getHostName().length() + 4 : 0;
         return 4*numbers_integer + 4*aux.size() + aux.stream().map(a -> a.length).reduce(0, Integer::sum) + auxint;

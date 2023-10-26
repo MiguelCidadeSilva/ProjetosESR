@@ -2,32 +2,33 @@ package Nodes.Classes;
 
 import Protocols.ProtocolBuildTree;
 
+import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class ServerNode {
+    private final List<String> neighbours;
     private final Map<String, List<InetSocketAddress>> clientsResourceMap;
     private final Map<String, ReadWriteLock> resourceLocks;
 
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    private void lockhelper(String resource){
-        lock.readLock().lock();
-        resourceLocks.get(resource).readLock().lock();
-    }
-
-    private void unlockhelper(String resource){
-        lock.readLock().unlock();
-        resourceLocks.get(resource).readLock().unlock();
-    }
-
-    public ServerNode() {
+    public ServerNode(String file) {
+        try {
+            this.neighbours = Files.readAllLines(Paths.get(file));
+        } catch (IOException e) {
+            System.out.println("Erro a carregar os vizinhos");
+            throw new RuntimeException(e);
+        }
         this.clientsResourceMap = new HashMap<>();
         this.resourceLocks = new HashMap<>();
     }
+
     public void addResource(String resource) {
         lock.writeLock().lock();
         this.clientsResourceMap.put(resource, new ArrayList<>());
@@ -68,19 +69,16 @@ public class ServerNode {
         return r;
     }
 
-
-    public void clearResources(){
-        lock.writeLock().lock();
-        for (String resource : this.clientsResourceMap.keySet()) {
-            this.resourceLocks.get(resource).writeLock().lock();
-            boolean aux =this.clientsResourceMap.get(resource).isEmpty();
-            if(aux) this.clientsResourceMap.remove(resource);
-            this.resourceLocks.get(resource).writeLock().unlock();
-            if(aux) this.resourceLocks.remove(resource);
-        }
-        lock.writeLock().unlock();
+    public String getNeighbour(int index) {
+        return this.neighbours.get(index);
+    }
+    public int neighbourSize() {
+        return this.neighbours.size();
     }
 
+    public List<String> getNeighbours() {
+        return neighbours;
+    }
 
     // Método que recebo frames / partes de audio / partes do texto
     public void receiveResources() {}
