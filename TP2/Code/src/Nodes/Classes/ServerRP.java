@@ -52,20 +52,6 @@ public class ServerRP extends ServerNode{
         buildBaseDirectory();
     }
 
-    // No server RP não faz sentido este método.
-    // Talvez criar uma classe nova que identifique os servers intermédios e tirar este médio da
-    // classe ServerNode.
-    // Nos clientes é o contrário, só faz sentido ter este método e não o sendResouces.
-    
-    // Deixar método vazio (explicação aqui em cima)
-    @Override
-    public void receiveResources() {}
-
-    // Método que vai mandando os frames / pedaços de audio / texto para os clientes
-    @Override
-    public void sendResources() {
-        // todo
-    }
     private boolean addResourceRP(String resource) {
         if(!this.hasResource(resource))
         {

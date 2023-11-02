@@ -1,6 +1,7 @@
 package Nodes.Classes;
 
 import Protocols.ProtocolBuildTree;
+import Protocols.ProtocolTransferContent;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
@@ -81,9 +82,19 @@ public class ServerNode {
     }
 
     // Método que recebo frames / partes de audio / partes do texto
-    public void receiveResources() {}
+    public StreamingPacket receiveResources(DatagramPacket datagramPacket) {
+        return ProtocolTransferContent.decapsulate(datagramPacket);
+    }
     // Método que replica o conteudo recebido por todos os clientes
-    public void sendResources() {}
+    public List<InetSocketAddress> getClientList(StreamingPacket streamingPacket) {
+        String resource = streamingPacket.getResource();
+        lock.readLock().lock();
+        resourceLocks.get(resource).readLock().lock();
+        List<InetSocketAddress> clients = new ArrayList<>(clientsResourceMap.get(resource));
+        resourceLocks.get(resource).readLock().unlock();
+        lock.readLock().unlock();
+        return clients;
+    }
 
     public boolean receiveRequest(String resource, InetSocketAddress origin) {
         // Ver se tem o recurso
