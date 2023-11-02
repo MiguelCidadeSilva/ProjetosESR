@@ -1,33 +1,42 @@
 package Nodes.Classes;
 
+import Nodes.Utils.Ports;
+import Protocols.Helper.HelperConnection;
 import Protocols.ProtocolBuildTree;
 import Protocols.ProtocolTransferContent;
 
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 public class ServerNode {
-    private final List<String> neighbours;
+    private final List<InetSocketAddress> neighbours;
     private final Map<String, List<InetSocketAddress>> clientsResourceMap;
     private final Map<String, ReadWriteLock> resourceLocks;
-
+    private final Map<String, List<InetSocketAddress>> clientsBuildTree;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
+
+    private final ReadWriteLock lockTree = new ReentrantReadWriteLock();
 
     public ServerNode(String file) {
         try {
-            this.neighbours = Files.readAllLines(Paths.get(file));
+            this.neighbours = Files.readAllLines(Paths.get(file)).stream().map(str -> new InetSocketAddress(str, Ports.portSOConnections)).collect(Collectors.toList());
         } catch (IOException e) {
             System.out.println("Erro a carregar os vizinhos");
             throw new RuntimeException(e);
         }
         this.clientsResourceMap = new HashMap<>();
         this.resourceLocks = new HashMap<>();
+        this.clientsBuildTree = new HashMap<>();
     }
 
     public void addResource(String resource) {
@@ -70,14 +79,14 @@ public class ServerNode {
         return r;
     }
 
-    public String getNeighbour(int index) {
+    public InetSocketAddress getNeighbour(int index) {
         return this.neighbours.get(index);
     }
     public int neighbourSize() {
         return this.neighbours.size();
     }
 
-    public List<String> getNeighbours() {
+    public List<InetSocketAddress> getNeighbours() {
         return neighbours;
     }
 
@@ -95,11 +104,42 @@ public class ServerNode {
         lock.readLock().unlock();
         return clients;
     }
-
-    public boolean receiveRequest(String resource, InetSocketAddress origin) {
+    public void sendRequest(InetSocketAddress neighbour, String resource, InetSocketAddress origin) {
+        try {
+            Socket socket = new Socket(neighbour.getAddress(), Ports.portSOConnections);
+            DataInputStream dis = new DataInputStream(socket.getInputStream());
+            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+            ProtocolBuildTree.encapsulateAsk(origin,resource,dos);
+            boolean found = ProtocolBuildTree.decapsulateAnswer(dis);
+            socket.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+    public boolean receiveRequest(HelperConnection hc) throws InterruptedException {
         // Ver se tem o recurso
         // Se tiver recurso, returnar true
+        String resource = hc.name();
+        InetSocketAddress origin = hc.address();
+        if(this.hasResource(resource))
+            return true;
         // Se não tiver recurso ver se há situação de loop
+        this.lockTree.writeLock().lock();
+        if(this.clientsBuildTree.get(resource).contains(origin)) {
+            this.lockTree.writeLock().unlock();
+            return false;
+        }
+        this.clientsBuildTree.get(resource).add(origin);
+        this.lockTree.writeLock().unlock();
+        List<Thread> list = new ArrayList<>();
+        for (InetSocketAddress neighbour : neighbours) {
+            Thread t = new Thread(() -> sendRequest(neighbour, resource, origin));
+            t.start();
+            list.add(t);
+        }
+        for(Thread t : list)
+            t.join();
+
         // Se não houver situação de loop, guardar num map <recurso, lista de origens> a origem associada ao recurso
         // Contactar cada um dos vizinhos e guardar num map <vizinho, tempo de envio de request>
         // ao fim de contactar cada um dos vizinhos, calcular o minimo de tempo usado para cada vizinho
@@ -108,10 +148,17 @@ public class ServerNode {
         // pegar nesse vizinho com menor tempo
         // adicionar a um map<recurso,vizinho>
         // returnar false
+
+        this.lockTree.writeLock().lock();
+        this.clientsBuildTree.get(resource).remove(origin);
+        this.lockTree.writeLock().unlock();
         return false;
     }
 
-    public DatagramPacket answerRequest(boolean found) {
-        return found ? ProtocolBuildTree.encapsulateAnswerLoop() : ProtocolBuildTree.encapsulateAnswerFound();
+    public void answerRequest(boolean found, DataOutputStream dos) throws IOException {
+        if(found)
+            ProtocolBuildTree.encapsulateAnswerLoop(dos);
+        else
+            ProtocolBuildTree.encapsulateAnswerFound(dos);
     }
 }

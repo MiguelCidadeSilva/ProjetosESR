@@ -55,6 +55,7 @@ public class ServerRP extends ServerNode{
     private boolean addResourceRP(String resource) {
         if(!this.hasResource(resource))
         {
+            /*
             System.out.println("A organizar os servidores a contactar");
             List<String> dbServers = OrganizeIps.organizeIps(this.getNeighbours());
             System.out.println("Ordem: " + dbServers.toString());
@@ -62,14 +63,8 @@ public class ServerRP extends ServerNode{
             for(int i = 0; i < dbServers.size() && noFound; i++)
                 noFound = contactServerDB(this.getNeighbour(i),resource);
             return !noFound;
+             */
         }
         return true;
-    }
-    @Override
-    public boolean receiveRequest(String resource, InetSocketAddress origin) {
-        // ver se está em loop
-        boolean hasResource = addResourceRP(resource);
-        // hasResource = true, conteudo existe, false não existe (só para evitar casos de pedir que recursos não existem)
-        return hasResource;
     }
 }
