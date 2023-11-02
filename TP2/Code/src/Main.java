@@ -1,3 +1,4 @@
+import Nodes.Utils.VideoExtractor;
 import Protocols.Helper.HelperContentReader;
 import Protocols.Helper.HelperContentWriter;
 import Protocols.Helper.HelperProtocols;
@@ -49,9 +50,11 @@ public class Main {
         System.out.println("TCP");
         print(hcr);
     }
-    public static void main(String[] args) throws IOException {
-        HelperContentWriter hcw = write();
-        testUDP(hcw);
-        testTCP(hcw);
+    public static void main(String[] args) throws IOException, InterruptedException {
+        // HelperContentWriter hcw = write();
+        // testUDP(hcw);
+        // testTCP(hcw);
+
+        VideoExtractor ve = new VideoExtractor("video.mp4");
     }
 }

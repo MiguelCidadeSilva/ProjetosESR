@@ -42,10 +42,10 @@ public class ServerDB {
             if(isRequest)
             {
                 byte[] contentFile = content.containsKey(aux[0]) ? Files.readAllBytes(Paths.get(content.get(aux[0]))) : new byte[0];
-                ProtocolLoadContent.encapsulateContent(contentFile,dos,true);
+                ProtocolLoadContent.encapsulateContent(contentFile,dos,true,socket.getInetAddress().getHostAddress());
             }
             else
-                ProtocolLoadContent.encapsulateConnection(dos,true);
+                ProtocolLoadContent.encapsulateConnection(dos,true,socket.getInetAddress().getHostAddress());
             socket.close();
         } catch (IOException e) {
             System.out.println("Erro ao atender o cliente " + socket.getInetAddress().getHostAddress());

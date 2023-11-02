@@ -27,14 +27,14 @@ public class ServerRP extends ServerNode{
         } catch (IOException ignored) {}
     }
     // Contacta um servidor que contem a base de dados
-    public boolean contactServerDB(String server, String resource) {
+    public boolean contactServerDB(InetSocketAddress server, String resource) {
         boolean nosucess = true;
         try {
-            Socket socket = new Socket(server, Ports.portDB);
+            Socket socket = new Socket(server.getAddress().getHostAddress(), Ports.portDB);
             DataInputStream dis = new DataInputStream(socket.getInputStream());
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
             System.out.println(dis.available());
-            ProtocolLoadContent.encapsulateRequest(resource,dos,true);
+            ProtocolLoadContent.encapsulateRequest(resource,dos,true, server.getAddress().getHostAddress());
             System.out.println(dis.available());
             byte[] content = ProtocolLoadContent.decapsulateContent(dis);
             if(content.length > 0)
@@ -55,15 +55,13 @@ public class ServerRP extends ServerNode{
     private boolean addResourceRP(String resource) {
         if(!this.hasResource(resource))
         {
-            /*
             System.out.println("A organizar os servidores a contactar");
-            List<String> dbServers = OrganizeIps.organizeIps(this.getNeighbours());
+            List<InetSocketAddress> dbServers = OrganizeIps.organizeIps(this.getNeighbours());
             System.out.println("Ordem: " + dbServers.toString());
             boolean noFound = true;
             for(int i = 0; i < dbServers.size() && noFound; i++)
-                noFound = contactServerDB(this.getNeighbour(i),resource);
+                noFound = contactServerDB(dbServers.get(i),resource);
             return !noFound;
-             */
         }
         return true;
     }

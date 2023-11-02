@@ -5,6 +5,7 @@ import Protocols.ProtocolLoadContent;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,13 +14,13 @@ import java.util.Map;
 
 public class OrganizeIps {
 
-    public static List<String> organizeIps(List<String> ips)  {
+    public static List<InetSocketAddress> organizeIps(List<InetSocketAddress> ips)  {
         Map<String,Long[]> times = new HashMap<>();
         List<Thread> threads = new ArrayList<>();
-        for (String ip : ips) {
+        for (InetSocketAddress ip : ips) {
             Long[] timesaux = new Long[2];
-            times.put(ip, timesaux);
-            Thread t = getThread(ip, times);
+            times.put(ip.getAddress().getHostAddress(), timesaux);
+            Thread t = getThread(ip.getAddress().getHostAddress(), times);
             t.start();
             threads.add(t);
         }
@@ -38,7 +39,7 @@ public class OrganizeIps {
                 Socket socket = new Socket(ip, Ports.portDB);
                 DataInputStream dis = new DataInputStream(socket.getInputStream());
                 DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-                ProtocolLoadContent.encapsulateConnection(dos,true);
+                ProtocolLoadContent.encapsulateConnection(dos,true, ip);
                 boolean b = ProtocolLoadContent.decapsulateConnection(dis);
                 times.get(ip)[1] = System.currentTimeMillis();
                 socket.close();
