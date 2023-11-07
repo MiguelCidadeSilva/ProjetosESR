@@ -56,5 +56,10 @@ public class Main {
         // testTCP(hcw);
 
         VideoExtractor ve = new VideoExtractor("video.mp4");
+
+        System.out.println(ve.hasFrames());
+        System.out.println(ve.hasAudio());
+        System.out.println(ve.getFrameRate());
+        System.out.println(ve.getVideo());
     }
 }
