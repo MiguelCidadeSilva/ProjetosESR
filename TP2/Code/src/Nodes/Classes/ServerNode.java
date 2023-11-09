@@ -1,6 +1,6 @@
 package Nodes.Classes;
 
-import Nodes.Utils.Ports;
+import Nodes.Utils.Cods;
 import Protocols.Helper.HelperConnection;
 import Protocols.ProtocolBuildTree;
 import Protocols.ProtocolTransferContent;
@@ -29,7 +29,7 @@ public class ServerNode {
 
     public ServerNode(String file) {
         try {
-            this.neighbours = Files.readAllLines(Paths.get(file)).stream().map(str -> new InetSocketAddress(str, Ports.portSOConnections)).collect(Collectors.toList());
+            this.neighbours = Files.readAllLines(Paths.get(file)).stream().map(str -> new InetSocketAddress(str, Cods.portSOConnections)).collect(Collectors.toList());
         } catch (IOException e) {
             System.out.println("Erro a carregar os vizinhos");
             throw new RuntimeException(e);
@@ -106,7 +106,7 @@ public class ServerNode {
     }
     public void sendRequest(InetSocketAddress neighbour, String resource, InetSocketAddress origin) {
         try {
-            Socket socket = new Socket(neighbour.getAddress(), Ports.portSOConnections);
+            Socket socket = new Socket(neighbour.getAddress(), Cods.portSOConnections);
             DataInputStream dis = new DataInputStream(socket.getInputStream());
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
             ProtocolBuildTree.encapsulateAsk(origin,resource,dos);
@@ -121,6 +121,7 @@ public class ServerNode {
         // Se tiver recurso, returnar true
         String resource = hc.name();
         InetSocketAddress origin = hc.address();
+        /*
         if(this.hasResource(resource))
             return true;
         // Se não tiver recurso ver se há situação de loop
@@ -131,6 +132,7 @@ public class ServerNode {
         }
         this.clientsBuildTree.get(resource).add(origin);
         this.lockTree.writeLock().unlock();
+         */
         List<Thread> list = new ArrayList<>();
         for (InetSocketAddress neighbour : neighbours) {
             Thread t = new Thread(() -> sendRequest(neighbour, resource, origin));
@@ -148,10 +150,11 @@ public class ServerNode {
         // pegar nesse vizinho com menor tempo
         // adicionar a um map<recurso,vizinho>
         // returnar false
-
+        /*
         this.lockTree.writeLock().lock();
         this.clientsBuildTree.get(resource).remove(origin);
         this.lockTree.writeLock().unlock();
+        */
         return false;
     }
 

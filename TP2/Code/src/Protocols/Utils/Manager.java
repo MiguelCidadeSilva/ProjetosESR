@@ -7,4 +7,7 @@ public class Manager {
     public static void sucessMessage(String task) {
         System.out.println("Tarefa " + task + " foi realizada com sucesso");
     }
+    public static void printReceived(String message) {
+        System.out.println(message + " recebido");
+    }
 }

@@ -36,4 +36,5 @@ public class HelperContentReader {
     public boolean hasContent() {
         return byteBuffer.hasRemaining();
     }
+    public int numberBytes() {return byteBuffer.remaining();}
 }

@@ -36,7 +36,7 @@ public class OrganizeIps {
         return new Thread(() -> {
             times.get(ip)[0] = System.currentTimeMillis();
             try {
-                Socket socket = new Socket(ip, Ports.portDB);
+                Socket socket = new Socket(ip, Cods.portDB);
                 DataInputStream dis = new DataInputStream(socket.getInputStream());
                 DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
                 ProtocolLoadContent.encapsulateConnection(dos,true, ip);

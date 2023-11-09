@@ -55,7 +55,7 @@ public class Main {
         // testUDP(hcw);
         // testTCP(hcw);
 
-        VideoExtractor ve = new VideoExtractor("video.mp4");
+        VideoExtractor ve = new VideoExtractor("video.mp4","Testfiles/DBFiles/video.mp4");
 
         System.out.println(ve.hasFrames());
         System.out.println(ve.hasAudio());
