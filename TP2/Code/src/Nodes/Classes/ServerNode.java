@@ -1,8 +1,10 @@
 package Nodes.Classes;
 
 import Nodes.Utils.Cods;
+import Nodes.Utils.Debug;
 import Protocols.Helper.HelperConnection;
 import Protocols.ProtocolBuildTree;
+import Protocols.ProtocolStartStreaming;
 import Protocols.ProtocolTransferContent;
 
 import java.io.DataInputStream;
@@ -10,6 +12,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetSocketAddress;
+import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -23,9 +26,10 @@ public class ServerNode {
     private final Map<String, List<InetSocketAddress>> clientsResourceMap;
     private final Map<String, ReadWriteLock> resourceLocks;
     private final Map<String, List<InetSocketAddress>> clientsBuildTree;
+    private final Map<String, List<InetSocketAddress>> bestNeighbours;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
-
     private final ReadWriteLock lockTree = new ReentrantReadWriteLock();
+    private final ReadWriteLock lockBestN = new ReentrantReadWriteLock();
 
     public ServerNode(String file) {
         try {
@@ -35,8 +39,9 @@ public class ServerNode {
             throw new RuntimeException(e);
         }
         this.clientsResourceMap = new HashMap<>();
-        this.resourceLocks = new HashMap<>();
-        this.clientsBuildTree = new HashMap<>();
+        this.resourceLocks      = new HashMap<>();
+        this.clientsBuildTree   = new HashMap<>();
+        this.bestNeighbours     = new HashMap<>();
     }
 
     public void addResource(String resource) {
@@ -90,19 +95,23 @@ public class ServerNode {
         lock.writeLock().unlock();
         return res;
     }
-
     public InetSocketAddress getNeighbour(int index) {
         return this.neighbours.get(index);
     }
     public int neighbourSize() {
         return this.neighbours.size();
     }
-
     public List<InetSocketAddress> getNeighbours() {
         return neighbours;
     }
-
+    protected List<InetSocketAddress> getBestNeighbours(String resource) {
+        this.lockBestN.readLock().lock();
+        List<InetSocketAddress> bestneighbours = new ArrayList<>(this.bestNeighbours.get(resource));
+        this.lockBestN.readLock().unlock();
+        return bestneighbours;
+    }
     // Método que recebe frames / partes de audio / partes do texto
+
     public StreamingPacket receiveResources(DatagramPacket datagramPacket) {
         return ProtocolTransferContent.decapsulate(datagramPacket);
     }
@@ -116,19 +125,36 @@ public class ServerNode {
         lock.readLock().unlock();
         return clients;
     }
+
+    public void multicast(StreamingPacket packet) {
+        List<InetSocketAddress> clients = getClientList(packet);
+        Debug.printTask("A fazer multicast do recurso " + packet.getResource() + " para os clientes: " + clients.stream().map(i -> i.getAddress().getHostAddress()).toList());
+        // ...
+    }
+
     public void sendRequest(InetSocketAddress neighbour, String resource, InetSocketAddress origin, int tid,Map<Integer,Long> responseTime) {
         try {
+            String ip = neighbour.getAddress().getHostAddress();
+            Debug.printTask("A perguntar " + ip + " se tem o recurso " + resource);
             Long startTime = System.currentTimeMillis();
             Socket socket = new Socket(neighbour.getAddress(), Cods.portSOConnections);
             DataInputStream dis = new DataInputStream(socket.getInputStream());
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
             ProtocolBuildTree.encapsulateAsk(origin,resource,dos);
-            boolean found = ProtocolBuildTree.decapsulateAnswer(dis);
+            byte codigo = ProtocolBuildTree.decapsulateAnswer(dis);
             socket.close();
             Long endTime = System.currentTimeMillis();
             Long delay = endTime - startTime;
-            if (found)
-                responseTime.put(tid,delay);
+            if (codigo == ProtocolBuildTree.found) {
+                Debug.printTask("Vizinho " + ip + " contém o conteudo");
+                responseTime.put(tid, delay);
+            }
+            else if (codigo == ProtocolBuildTree.loop) {
+                Debug.printTask("Loop com o Vizinho " + ip );
+            }
+            else {
+                Debug.printTask("Vizinho " + ip + " não encontrou o recurso.");
+            }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -139,12 +165,11 @@ public class ServerNode {
         byte res = ProtocolBuildTree.nofound;
         String resource = hc.name();
         if(this.hasResource(resource)) {
-            System.out.println("Tem o recurso");
+            Debug.printTask("Tenho o recurso " + resource + ". Responder com código " + ProtocolBuildTree.found);
             res = ProtocolBuildTree.found;
         }
         else
         {
-            System.out.println("Não tem o recurso, a contactar vizinhos");
             int tid = 0;
             Map <Integer, Long> responseTime = new HashMap<>();
             Map <Integer, InetSocketAddress> neighbourMap = new HashMap<>();
@@ -155,37 +180,37 @@ public class ServerNode {
                 this.clientsBuildTree.put(resource,new ArrayList<>());
             if(this.clientsBuildTree.get(resource).contains(origin)) {
                 this.lockTree.writeLock().unlock();
-                System.out.println("Situação de loop");
+                Debug.printTask("Situação de loop . Responder com código " + ProtocolBuildTree.loop);
                 res = ProtocolBuildTree.loop;
             }
             else
             {
                 this.clientsBuildTree.get(resource).add(origin);
                 this.lockTree.writeLock().unlock();
-
+                Debug.printTask("Não foi encontrado o recurso em memória, a contactar vizinhos");
                 List<Thread> list = new ArrayList<>();
                 for (InetSocketAddress neighbour : neighbours) {
                     tid+=1;
                     neighbourMap.put(tid,neighbour);
                     int finalTid = tid;
-                    System.out.println("A contactar vizinho " + neighbour.getAddress().getHostAddress() + " a perguntar se tem o recurso " + resource);
+                    Debug.printTask("A contactar vizinho " + neighbour.getAddress().getHostAddress() + " a perguntar se tem o recurso " + resource);
                     Thread t = new Thread(() -> sendRequest(neighbour, resource, origin, finalTid, responseTime));
                     t.start();
                     list.add(t);
                 }
-
                 for(Thread t : list)
                     t.join();
-
                 List<InetSocketAddress> sortedNeighbours = responseTime.entrySet().stream().sorted(Map.Entry.comparingByValue()).map(Map.Entry::getKey).map(neighbourMap::get).toList();
-                System.out.println("Vizinhos ordenados: " + sortedNeighbours.stream().map(i -> i.getAddress().getHostAddress()).toList());
+                Debug.printTask("Vizinhos ordenados: " + sortedNeighbours.stream().map(i -> i.getAddress().getHostAddress()).toList());
                 if(!sortedNeighbours.isEmpty()) {
-                    System.out.println("Encontrou vizinhos com recursos");
+                    System.out.println("Encontrou vizinhos com recursos. Responder com código " + ProtocolBuildTree.found);
                     res = ProtocolBuildTree.found;
+                    this.lockBestN.writeLock().lock();
+                    this.bestNeighbours.put(resource,sortedNeighbours);
+                    this.lockBestN.writeLock().unlock();
                 }
                 else
-                    System.out.println("Não encontrou vizinhos com recursos");
-
+                    System.out.println("Não encontrou vizinhos com o recurso. Responder com código " + ProtocolBuildTree.nofound);
                 this.lockTree.writeLock().lock();
                 this.clientsBuildTree.get(resource).remove(origin);
                 this.lockTree.writeLock().unlock();
@@ -202,16 +227,86 @@ public class ServerNode {
         else
             ProtocolBuildTree.encapsulateAnswerNoFound(dos);
     }
-
     public void respondeRequest(Socket socket){
         try {
+            String ips = socket.getInetAddress().getHostAddress();
+            Debug.printLigacaoSucesso(ips);
             DataInputStream dis = new DataInputStream(socket.getInputStream());
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
             HelperConnection hc = ProtocolBuildTree.decapsulateAsk(dis);
             byte response = receiveRequest(hc);
+            Debug.printTask("Byte de resposta a pedido de conteudo " + response);
             encapsulateAnswer(response,dos);
         } catch (IOException | InterruptedException e) {
             throw new RuntimeException(e);
         }
+    }
+    private boolean contactNeighbourStartStreaming(InetSocketAddress neighbour, String resource) {
+        boolean sucess = false;
+        try {
+            String ip = neighbour.getAddress().getHostAddress();
+            Debug.printTask("A contactar vizinho " + ip  + " para o recurso " + resource);
+            Socket socket = new Socket(neighbour.getAddress(), Cods.portStartStreaming);
+            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+            ProtocolStartStreaming.encapsulate(resource,dos);
+            socket.close();
+            Debug.printTask("Streaming do recurso " + resource + " irá ser feito a partir do " + ip);
+            sucess = true;
+        } catch (IOException ignored) {}
+        return sucess;
+
+    }
+    protected boolean startStreaming(Socket socket) {
+        try {
+            String ips = socket.getInetAddress().getHostAddress();
+            Debug.printLigacaoSucesso(ips);
+            DataInputStream dis = new DataInputStream(socket.getInputStream());
+            String resource = ProtocolStartStreaming.decapsulate(dis);
+            socket.close();
+            Debug.printTask("A adicionar cliente " + ips + " para streaming do conteudo " + resource);
+            this.addClient(resource,new InetSocketAddress(socket.getInetAddress(),Cods.portStreamingContent));
+            List<InetSocketAddress> bestneighbours = this.getBestNeighbours(resource);
+            Debug.printTask("Vizinhos que a contactar :" + bestneighbours.stream().map(ip -> ip.getAddress().getHostAddress()).toList());
+            boolean sucess = false;
+            for(int i = 0; i < bestneighbours.size() && !sucess; i++)
+                sucess = contactNeighbourStartStreaming(bestneighbours.get(i),resource);
+            if(sucess)
+                Debug.printTask("Encontrado vizinho para streaming para o recurso " + resource);
+            else
+                Debug.printError("Não encontrado vizinho para streaming para o recurso " + resource);
+            return sucess;
+        } catch (IOException  e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void serverRequest(ServerSocket serverSocket) {
+        try {
+            while (true) {
+                Socket clientSocket = serverSocket.accept();
+                Thread t1 = new Thread(() -> respondeRequest(clientSocket));
+                t1.start();
+            }
+        }catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void serverStartStreaming(ServerSocket serverSocket) {
+        try {
+            while (true) {
+                Socket clientSocket = serverSocket.accept();
+                Thread t1 = new Thread(() -> startStreaming(clientSocket));
+                t1.start();
+            }
+        }catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void initServer() throws IOException {
+        Thread taux =  new Thread(() -> {try { serverRequest(new ServerSocket(Cods.portSOConnections));} catch (IOException e) {throw new RuntimeException(e);}});
+        taux.start();
+        serverStartStreaming(new ServerSocket(Cods.portStartStreaming));
     }
 }

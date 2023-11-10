@@ -53,8 +53,8 @@ public class ProtocolBuildTree {
     }
 
 
-    public static boolean decapsulateAnswer(DataInputStream dos) {
+    public static byte decapsulateAnswer(DataInputStream dos) {
         HelperContentReader hcr = HelperProtocols.readContentTCP(dos);
-        return hcr.readByte() == found;
+        return hcr.readByte();
     }
 }

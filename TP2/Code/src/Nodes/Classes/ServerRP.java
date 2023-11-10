@@ -4,6 +4,7 @@ import Nodes.Utils.Debug;
 import Nodes.Utils.OrganizeIps;
 import Protocols.ProtocolLoadContent;
 import Nodes.Utils.Cods;
+import Protocols.ProtocolStartStreaming;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -11,6 +12,7 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ServerRP extends ServerNode{
@@ -40,8 +42,10 @@ public class ServerRP extends ServerNode{
             else
             {
                 this.addResource(resource);
+                multicast(packet);
                 while(packet.getType() != Cods.codEndStream) {
                     Debug.printStramingPacket(packet);
+                    multicast(packet);
                     packet = ProtocolLoadContent.decapsulateContent(dis);
                 }
                 Debug.printTask("Fim de streaming do recurso " + resource);
@@ -60,9 +64,11 @@ public class ServerRP extends ServerNode{
     public boolean addResourceRP(String resource) {
         if(!this.hasResource(resource))
         {
-            System.out.println("A organizar os servidores a contactar");
-            List<InetSocketAddress> dbServers = OrganizeIps.organizeIps(this.getNeighbours());
-            System.out.println("Ordem: " + dbServers.stream().map(ip -> ip.getAddress().getHostAddress()).toList().toString());
+            Debug.printTask("A organizar os servidores a contactar");
+            List<InetSocketAddress> dbServers = this.getBestNeighbours(resource);
+            if(dbServers == null)
+                dbServers = OrganizeIps.organizeIps(this.getNeighbours());
+            Debug.printTask("Ordem: " + dbServers.stream().map(ip -> ip.getAddress().getHostAddress()).toList().toString());
             boolean noFound = true;
             for(int i = 0; i < dbServers.size() && noFound; i++)
                 noFound = contactServerDB(dbServers.get(i),resource);
@@ -70,6 +76,22 @@ public class ServerRP extends ServerNode{
                 Debug.printError("Recurso não existe na base de dados");
             return !noFound;
         }
+        else
+            Debug.printTask("RP contém o conteudo. Não fazer pedido ao servidor");
         return true;
+    }
+
+    @Override
+    protected boolean startStreaming(Socket socket) {
+        try {
+            Debug.printLigacaoSucesso(socket.getInetAddress().getHostAddress());
+            DataInputStream dis = new DataInputStream(socket.getInputStream());
+            String resource = ProtocolStartStreaming.decapsulate(dis);
+            socket.close();
+            this.addClient(resource,new InetSocketAddress(socket.getInetAddress(),Cods.portStreamingContent));
+            return this.addResourceRP(resource);
+        } catch (IOException  e) {
+            throw new RuntimeException(e);
+        }
     }
 }
