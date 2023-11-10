@@ -29,7 +29,7 @@ public class OrganizeIps {
         }
         Map<String,Long> differenceTimes = new HashMap<>();
         times.forEach((ip,array) -> differenceTimes.put(ip,array[1]-array[0]));
-        return ips.stream().sorted((s1,s2) -> Math.toIntExact(differenceTimes.get(s2) - differenceTimes.get(s1))).toList();
+        return ips.stream().sorted((s1,s2) -> Math.toIntExact(differenceTimes.get(s2.getAddress().getHostAddress()) - differenceTimes.get(s1.getAddress().getHostAddress()))).toList();
     }
 
     private static Thread getThread(String ip, Map<String, Long[]> times) {

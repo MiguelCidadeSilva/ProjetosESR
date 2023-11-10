@@ -17,6 +17,7 @@ public class ServerRPExec {
     public static void testStreamRPDB(ServerRP rp) {
         rp.addResourceRP("db1");
         rp.addResourceRP("video.mp4");
+        rp.addResourceRP("videoA.mp4");
     }
     public static void testAskHasResourceDB(ServerRP rp) throws InterruptedException {
         byte b1 = rp.receiveRequest(new HelperConnection("db1",new InetSocketAddress("127.0.0.1",8002)));
@@ -25,7 +26,9 @@ public class ServerRPExec {
         byte b2 = rp.receiveRequest(new HelperConnection("video.mp4",new InetSocketAddress("127.0.0.1",8002)));
         String b2str = Byte.toString(b2);
         System.out.println("b2 = " + b2str);
-
+        byte b3 = rp.receiveRequest(new HelperConnection("videoA.mp4",new InetSocketAddress("127.0.0.1",8002)));
+        String b3str = Byte.toString(b3);
+        System.out.println("b3 = " + b3str);
     }
 
     public static void testAskHasResourceNode(ServerRP rp) {

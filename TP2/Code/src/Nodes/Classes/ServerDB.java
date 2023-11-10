@@ -40,7 +40,8 @@ public class ServerDB {
         VideoExtractor ve = new VideoExtractor(resource,content.get(resource));
         while(ve.hasFrames())
         {
-            ProtocolLoadContent.encapsulateAudio(ve,dos,true,destiny);
+            if(ve.hasAudio()) 
+		ProtocolLoadContent.encapsulateAudio(ve,dos,true,destiny);
             ProtocolLoadContent.encapsulateVideo(ve,dos,true,destiny);
             Thread.sleep(1000);
         }

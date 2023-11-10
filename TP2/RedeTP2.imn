@@ -10,15 +10,15 @@ node n1 {
 	!
     }
     canvas c1
-    iconcoords {165.0 30.0}
-    labelcoords {165.0 62.0}
+    iconcoords {171.0 33.0}
+    labelcoords {171.0 65.0}
     interface-peer {eth0 n21}
     services {DefaultRoute SSH UserDefined}
     custom-config {
 	custom-config-id service:UserDefined
 	custom-command UserDefined
 	config {
-	cmdup=('cp -r /home/core/ProjetosESR/TP2/Code/ /tmp/pycore.36015/Dume.conf', )
+	cmdup=('cp -r /home/core/ProjetosESR/TP2/Code .', )
 	}
     }
 }
@@ -35,17 +35,17 @@ node n2 {
 	!
     }
     canvas c1
-    iconcoords {608.0 30.0}
-    labelcoords {608.0 62.0}
+    iconcoords {614.0 36.0}
+    labelcoords {614.0 68.0}
     interface-peer {eth0 n23}
+    services {DefaultRoute SSH UserDefined}
     custom-config {
 	custom-config-id service:UserDefined
 	custom-command UserDefined
 	config {
-	cmdup=('cp -r /home/core/ProjetosESR/TP2/Code/ /tmp/pycore.36015/Real.conf', )
+	cmdup=('cp -r /home/core/ProjetosESR/TP2/Code .', )
 	}
     }
-    services {DefaultRoute SSH UserDefined}
 }
 
 node n3 {
@@ -156,17 +156,17 @@ node n6 {
 	!
     }
     canvas c1
-    iconcoords {626.0 561.0}
-    labelcoords {626.0 593.0}
+    iconcoords {633.0 568.0}
+    labelcoords {633.0 600.0}
     interface-peer {eth0 n24}
+    services {DefaultRoute SSH UserDefined}
     custom-config {
 	custom-config-id service:UserDefined
 	custom-command UserDefined
 	config {
-	cmdup=('cp -r /home/core/ProjetosESR/TP2/Code/ /tmp/pycore.36015/RP.conf', )
+	cmdup=('cp -r /home/core/ProjetosESR/TP2/Code .', )
 	}
     }
-    services {DefaultRoute SSH UserDefined}
 }
 
 node n7 {
@@ -772,7 +772,7 @@ annotation a2 {
     label {}
     labelcolor black
     fontfamily {Arial}
-    fontsize 12
+    fontsize {12}
     color #16c028
     width 0
     border black
@@ -786,7 +786,7 @@ annotation a3 {
     label {}
     labelcolor black
     fontfamily {Arial}
-    fontsize 12
+    fontsize {12}
     color #24c02e
     width 0
     border black
@@ -800,7 +800,7 @@ annotation a4 {
     label {}
     labelcolor black
     fontfamily {Arial}
-    fontsize 12
+    fontsize {12}
     color #1ec039
     width 0
     border black
@@ -814,7 +814,7 @@ annotation a5 {
     label {}
     labelcolor black
     fontfamily {Arial}
-    fontsize 12
+    fontsize {12}
     color #24c031
     width 0
     border black
@@ -828,7 +828,7 @@ annotation a6 {
     label {}
     labelcolor black
     fontfamily {Arial}
-    fontsize 12
+    fontsize {12}
     color #2cc02b
     width 0
     border black
