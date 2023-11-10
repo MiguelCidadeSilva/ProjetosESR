@@ -79,6 +79,18 @@ public class ServerNode {
         return r;
     }
 
+    public boolean removeResource(String resource) {
+        boolean res = false;
+        lock.writeLock().lock();
+        if(this.clientsResourceMap.containsKey(resource)){
+            this.clientsResourceMap.remove(resource);
+            this.resourceLocks.remove(resource);
+            res= true;
+        }
+        lock.writeLock().unlock();
+        return res;
+    }
+
     public InetSocketAddress getNeighbour(int index) {
         return this.neighbours.get(index);
     }
@@ -90,7 +102,7 @@ public class ServerNode {
         return neighbours;
     }
 
-    // Método que recebo frames / partes de audio / partes do texto
+    // Método que recebe frames / partes de audio / partes do texto
     public StreamingPacket receiveResources(DatagramPacket datagramPacket) {
         return ProtocolTransferContent.decapsulate(datagramPacket);
     }
@@ -104,64 +116,102 @@ public class ServerNode {
         lock.readLock().unlock();
         return clients;
     }
-    public void sendRequest(InetSocketAddress neighbour, String resource, InetSocketAddress origin) {
+    public void sendRequest(InetSocketAddress neighbour, String resource, InetSocketAddress origin, int tid,Map<Integer,Long> responseTime) {
         try {
+            Long startTime = System.currentTimeMillis();
             Socket socket = new Socket(neighbour.getAddress(), Cods.portSOConnections);
             DataInputStream dis = new DataInputStream(socket.getInputStream());
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
             ProtocolBuildTree.encapsulateAsk(origin,resource,dos);
             boolean found = ProtocolBuildTree.decapsulateAnswer(dis);
             socket.close();
+            Long endTime = System.currentTimeMillis();
+            Long delay = endTime - startTime;
+            if (found)
+                responseTime.put(tid,delay);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
-    public boolean receiveRequest(HelperConnection hc) throws InterruptedException {
+    public byte receiveRequest(HelperConnection hc) throws InterruptedException {
         // Ver se tem o recurso
         // Se tiver recurso, returnar true
+        byte res = ProtocolBuildTree.nofound;
         String resource = hc.name();
-        InetSocketAddress origin = hc.address();
-        /*
-        if(this.hasResource(resource))
-            return true;
-        // Se não tiver recurso ver se há situação de loop
-        this.lockTree.writeLock().lock();
-        if(this.clientsBuildTree.get(resource).contains(origin)) {
-            this.lockTree.writeLock().unlock();
-            return false;
+        if(this.hasResource(resource)) {
+            System.out.println("Tem o recurso");
+            res = ProtocolBuildTree.found;
         }
-        this.clientsBuildTree.get(resource).add(origin);
-        this.lockTree.writeLock().unlock();
-         */
-        List<Thread> list = new ArrayList<>();
-        for (InetSocketAddress neighbour : neighbours) {
-            Thread t = new Thread(() -> sendRequest(neighbour, resource, origin));
-            t.start();
-            list.add(t);
-        }
-        for(Thread t : list)
-            t.join();
+        else
+        {
+            System.out.println("Não tem o recurso, a contactar vizinhos");
+            int tid = 0;
+            Map <Integer, Long> responseTime = new HashMap<>();
+            Map <Integer, InetSocketAddress> neighbourMap = new HashMap<>();
+            InetSocketAddress origin = hc.address();
+            // Se não tiver recurso ver se há situação de loop
+            this.lockTree.writeLock().lock();
+            if(!this.clientsBuildTree.containsKey(resource))
+                this.clientsBuildTree.put(resource,new ArrayList<>());
+            if(this.clientsBuildTree.get(resource).contains(origin)) {
+                this.lockTree.writeLock().unlock();
+                System.out.println("Situação de loop");
+                res = ProtocolBuildTree.loop;
+            }
+            else
+            {
+                this.clientsBuildTree.get(resource).add(origin);
+                this.lockTree.writeLock().unlock();
 
-        // Se não houver situação de loop, guardar num map <recurso, lista de origens> a origem associada ao recurso
-        // Contactar cada um dos vizinhos e guardar num map <vizinho, tempo de envio de request>
-        // ao fim de contactar cada um dos vizinhos, calcular o minimo de tempo usado para cada vizinho
-        // Se algum vizinho responder com loop, remover do map<vizinho,tempo de envio de request o vizinho>
-        // Se o map<vizinho,tempo de envio de request o vizinho> estiver vazio retornar falso
-        // pegar nesse vizinho com menor tempo
-        // adicionar a um map<recurso,vizinho>
-        // returnar false
-        /*
-        this.lockTree.writeLock().lock();
-        this.clientsBuildTree.get(resource).remove(origin);
-        this.lockTree.writeLock().unlock();
-        */
-        return false;
+                List<Thread> list = new ArrayList<>();
+                for (InetSocketAddress neighbour : neighbours) {
+                    tid+=1;
+                    neighbourMap.put(tid,neighbour);
+                    int finalTid = tid;
+                    System.out.println("A contactar vizinho " + neighbour.getAddress().getHostAddress() + " a perguntar se tem o recurso " + resource);
+                    Thread t = new Thread(() -> sendRequest(neighbour, resource, origin, finalTid, responseTime));
+                    t.start();
+                    list.add(t);
+                }
+
+                for(Thread t : list)
+                    t.join();
+
+                List<InetSocketAddress> sortedNeighbours = responseTime.entrySet().stream().sorted(Map.Entry.comparingByValue()).map(Map.Entry::getKey).map(neighbourMap::get).toList();
+                System.out.println("Vizinhos ordenados: " + sortedNeighbours.stream().map(i -> i.getAddress().getHostAddress()).toList());
+                if(!sortedNeighbours.isEmpty()) {
+                    System.out.println("Encontrou vizinhos com recursos");
+                    res = ProtocolBuildTree.found;
+                }
+                else
+                    System.out.println("Não encontrou vizinhos com recursos");
+
+                this.lockTree.writeLock().lock();
+                this.clientsBuildTree.get(resource).remove(origin);
+                this.lockTree.writeLock().unlock();
+            }
+        }
+        return res;
     }
 
-    public void answerRequest(boolean found, DataOutputStream dos) throws IOException {
-        if(found)
+    private void encapsulateAnswer(byte found, DataOutputStream dos) throws IOException {
+        if(found == ProtocolBuildTree.loop)
             ProtocolBuildTree.encapsulateAnswerLoop(dos);
-        else
+        else if(found == ProtocolBuildTree.found)
             ProtocolBuildTree.encapsulateAnswerFound(dos);
+        else
+            ProtocolBuildTree.encapsulateAnswerNoFound(dos);
+    }
+
+    public void respondeRequest(Socket socket){
+        try {
+            DataInputStream dis = new DataInputStream(socket.getInputStream());
+            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+            HelperConnection hc = ProtocolBuildTree.decapsulateAsk(dis);
+            byte response = receiveRequest(hc);
+            encapsulateAnswer(response,dos);
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

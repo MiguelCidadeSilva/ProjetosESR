@@ -39,11 +39,13 @@ public class ServerRP extends ServerNode{
             }
             else
             {
+                this.addResource(resource);
                 while(packet.getType() != Cods.codEndStream) {
                     Debug.printStramingPacket(packet);
                     packet = ProtocolLoadContent.decapsulateContent(dis);
                 }
                 Debug.printTask("Fim de streaming do recurso " + resource);
+                this.removeResource(resource);
                 nosucess = false;
             }
             socket.close();

@@ -83,7 +83,7 @@ public class VideoExtractor {
         extractFrameRate(file);
         Debug.printTask("Video " + resource + " extraido com sucesso. Número de frames=" + this.frames.size() + ". Número de pedaços de audio com 2 segundos " + this.audio.size());
     }
-    public int framesLeft() {return this.frames.size();}
+    public int framesLeft() {return this.frames.size() < this.frameRate ? (this.frames.isEmpty() ? 0 : 1) : this.frames.size() / this.frameRate + 1;}
     public int audioLeft() {return this.audio.size();}
     public byte[] nextAudio() {
         return this.audio.poll();

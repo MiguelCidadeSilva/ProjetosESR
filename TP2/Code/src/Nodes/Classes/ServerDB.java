@@ -2,7 +2,9 @@ package Nodes.Classes;
 
 import Nodes.Utils.Debug;
 import Nodes.Utils.VideoExtractor;
+import Protocols.Helper.HelperConnection;
 import Protocols.Helper.HelperContentWriter;
+import Protocols.ProtocolBuildTree;
 import Protocols.ProtocolLoadContent;
 
 import java.io.DataInputStream;
@@ -40,9 +42,7 @@ public class ServerDB {
         {
             ProtocolLoadContent.encapsulateAudio(ve,dos,true,destiny);
             ProtocolLoadContent.encapsulateVideo(ve,dos,true,destiny);
-            System.out.println("Adormeceu");
-            Thread.sleep(3000);
-            System.out.println("Acordou " + ve.framesLeft() + " , " + ve.audioLeft());
+            Thread.sleep(1000);
         }
         ProtocolLoadContent.encapsulateEndStream(ve,dos,true,destiny);
         Debug.printTask("Recurso " + resource + ": terminou streaming");
@@ -69,6 +69,23 @@ public class ServerDB {
             throw new RuntimeException(e);
         } catch (InterruptedException e) {
             System.out.println("Erro ao mandar os frames");
+        }
+    }
+
+    public void hasResource(Socket socket) {
+        try {
+            Debug.printLigacaoSucesso(socket.getInetAddress().getHostAddress());
+            DataInputStream dis = new DataInputStream(socket.getInputStream());
+            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+            HelperConnection hc = ProtocolBuildTree.decapsulateAsk(dis);
+            if(this.content.containsKey(hc.name()))
+                ProtocolBuildTree.encapsulateAnswerFound(dos);
+            else
+                ProtocolBuildTree.encapsulateAnswerNoFound(dos);
+            socket.close();
+        } catch (IOException e) {
+            System.out.println("Erro ao atender o cliente " + socket.getInetAddress().getHostAddress() + ".");
+            throw new RuntimeException(e);
         }
     }
 }

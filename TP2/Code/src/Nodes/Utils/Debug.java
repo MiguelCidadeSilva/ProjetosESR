@@ -44,4 +44,5 @@ public class Debug {
     public static void printTask(String message) {
         System.out.println(message);
     }
+
 }

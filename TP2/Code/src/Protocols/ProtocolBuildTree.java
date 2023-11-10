@@ -19,6 +19,7 @@ import java.util.List;
 public class ProtocolBuildTree {
     public static final byte loop = 0;
     public static final byte found = 1;
+    public static final byte nofound = 2;
     public static void encapsulateAsk(InetSocketAddress ipO, String name, DataOutputStream dos) throws IOException {
         int capacity = HelperContentWriter.calculateCapacity(0, List.of(name), Collections.singleton(new byte[0]),ipO);
         HelperContentWriter hcp = new HelperContentWriter(capacity);
@@ -46,6 +47,9 @@ public class ProtocolBuildTree {
 
     public static void encapsulateAnswerLoop(DataOutputStream dos) throws IOException {
         encapsulateAnswer(loop, dos);
+    }
+    public static void encapsulateAnswerNoFound(DataOutputStream dos) throws IOException {
+        encapsulateAnswer(nofound, dos);
     }
 
 
