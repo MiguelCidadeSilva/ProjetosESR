@@ -49,9 +49,22 @@ public class ServerRPExec {
     }
     public static void main(String [] args) throws InterruptedException, IOException {
         ServerRP rp = new ServerRP(args[0]);
-        testStreamRPDB(rp);
-        // ServerSocket serverSocketTree = new ServerSocket(Cods.portSOConnections);
-        // System.out.println("ServerRP is listening at the ports " + Cods.portSOConnections);
-        // deliverTree(serverSocketTree,rp);
+        if(args.length > 1)
+	{
+		switch (args[1]) {
+		 	case "0":
+				testStreamRPDB(rp);
+				break;
+			case "1":
+				testAskHasResourceDB(rp);
+				break;
+		}
+	}
+	else
+	{
+        	ServerSocket serverSocketTree = new ServerSocket(Cods.portSOConnections);
+        	System.out.println("ServerRP is listening at the ports " + Cods.portSOConnections);
+        	deliverTree(serverSocketTree,rp);
+	}
     }
 }
