@@ -32,9 +32,9 @@ public class ServerRPExec {
             }
         }
         else {
-		List<Thread> lista = rp.initServer();
-		for(Thread t : lista)
-			t.join();
-	}
+            List<Thread> lista = rp.initServer();
+            for(Thread t : lista)
+                t.join();
+        }
     }
 }

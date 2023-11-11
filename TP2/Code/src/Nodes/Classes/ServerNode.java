@@ -117,16 +117,16 @@ public class ServerNode {
     // Método que replica o conteudo recebido por todos os clientes
     public List<InetAddress> getClientList(StreamingPacket streamingPacket) {
         String resource = streamingPacket.getResource();
-	List<InetAddress> clients;
+	    List<InetAddress> clients;
         lock.readLock().lock();
-	if(this.hasResource(resource)) {
+	    if(this.hasResource(resource)) {
         	resourceLocks.get(resource).readLock().lock();
         	clients = new ArrayList<>(clientsResourceMap.get(resource));
         	resourceLocks.get(resource).readLock().unlock();
         }
-	else
-		clients = new ArrayList<>();
- 	lock.readLock().unlock();
+	    else
+		    clients = new ArrayList<>();
+ 	    lock.readLock().unlock();
         return clients;
     }
 
@@ -147,7 +147,10 @@ public class ServerNode {
             Debug.printTask("Socket fechado.");
         }
         if(packet.getType() == Cods.codEndStream)
+        {
+            Debug.printTask("Pacote de fim de streaming a apagar recurso");
             this.removeResource(packet.getResource());
+        }
     }
 
     public void sendRequest(InetAddress neighbour, String resource, InetAddress origin, int tid,Map<Integer,Long> responseTime) {
@@ -274,6 +277,19 @@ public class ServerNode {
         return sucess;
 
     }
+    public boolean startStreamingCN(HelperConnection hc) {
+        String resource = hc.name();
+        InetAddress ip = hc.address();
+        Debug.printTask("A adicionar cliente " + ip.getHostAddress() + " para streaming do conteudo " + resource);
+        this.addResource(resource);
+        this.addClient(resource,ip);
+        List<InetAddress> bestneighbours = this.getBestNeighbours(resource);
+        Debug.printTask("Vizinhos que a contactar :" + bestneighbours.stream().map(InetAddress::getAddress).toList());
+        boolean sucess = false;
+        for(int i = 0; i < bestneighbours.size() && !sucess; i++)
+            sucess = contactNeighbourStartStreaming(bestneighbours.get(i),resource);
+        return sucess;
+    }
     protected boolean startStreaming(Socket socket) {
         try {
             String ips = socket.getInetAddress().getHostAddress();
@@ -281,14 +297,7 @@ public class ServerNode {
             DataInputStream dis = new DataInputStream(socket.getInputStream());
             String resource = ProtocolStartStreaming.decapsulate(dis);
             socket.close();
-            Debug.printTask("A adicionar cliente " + ips + " para streaming do conteudo " + resource);
-            this.addResource(resource);
-            this.addClient(resource,socket.getInetAddress());
-            List<InetAddress> bestneighbours = this.getBestNeighbours(resource);
-            Debug.printTask("Vizinhos que a contactar :" + bestneighbours.stream().map(InetAddress::getAddress).toList());
-            boolean sucess = false;
-            for(int i = 0; i < bestneighbours.size() && !sucess; i++)
-                sucess = contactNeighbourStartStreaming(bestneighbours.get(i),resource);
+            boolean sucess = startStreamingCN(new HelperConnection(resource,socket.getInetAddress()));
             if(sucess)
                 Debug.printTask("Encontrado vizinho para streaming para o recurso " + resource);
             else
@@ -300,7 +309,7 @@ public class ServerNode {
     }
 
     private void serverRequest() {
-	Debug.printTask("Servidor request aberto");
+	    Debug.printTask("Servidor request aberto");
         try(ServerSocket serverSocket = new ServerSocket(Cods.portSOConnections))
         {
             while (true) {
@@ -315,7 +324,7 @@ public class ServerNode {
     }
 
     private void serverStartStreaming() {
-	Debug.printTask("Servidor start streaming aberto");
+	    Debug.printTask("Servidor start streaming aberto");
         try(ServerSocket serverSocket = new ServerSocket(Cods.portStartStreaming))
         {
             while (true) {
@@ -328,7 +337,7 @@ public class ServerNode {
         }
     }
     private void serverMulticast() {
-	Debug.printTask("Servidor multicast aberto");
+	    Debug.printTask("Servidor multicast aberto");
         try (DatagramSocket socket = new DatagramSocket(Cods.portStreamingContent))
         {
             byte[] buffer = new byte[20000];
@@ -347,9 +356,9 @@ public class ServerNode {
         Thread taux1 = new Thread(this::serverRequest);
         Thread taux2 = new Thread(this::serverMulticast);
         Thread taux3 = new Thread(this::serverStartStreaming);
-	taux1.start();
+	    taux1.start();
         taux2.start();
-	taux3.start();
+	    taux3.start();
         return List.of(taux1,taux2,taux3);
     }
 }
