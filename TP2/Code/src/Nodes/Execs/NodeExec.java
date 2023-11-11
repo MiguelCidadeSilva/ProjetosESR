@@ -16,7 +16,7 @@ public class NodeExec {
         return b1;
     }
     public static boolean testAskStartStreaming(ServerNode sn, String resource) throws UnknownHostException {
-        boolean res = sn.startStreamingCN(new HelperConnection(resource, InetAddress.getByName("10.0.11.10"));
+        boolean res = sn.startStreamingCN(new HelperConnection(resource, InetAddress.getByName("10.0.11.10")));
         System.out.println("Valor de startStreaming = " + res);
         return res;
     }
