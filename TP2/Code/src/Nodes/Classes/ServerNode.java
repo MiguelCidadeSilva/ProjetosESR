@@ -126,10 +126,13 @@ public class ServerNode {
         return clients;
     }
 
-    public void multicast(StreamingPacket packet) {
+    public void multicast(StreamingPacket packet) throws InterruptedException {
         List<InetSocketAddress> clients = getClientList(packet);
         Debug.printTask("A fazer multicast do recurso " + packet.getResource() + " para os clientes: " + clients.stream().map(i -> i.getAddress().getHostAddress()).toList());
-        // ...
+        for (InetSocketAddress client :clients) {
+            HelperConnection hc = new HelperConnection(packet.getResource(),client);
+            receiveRequest(hc);
+        }
     }
 
     public void sendRequest(InetSocketAddress neighbour, String resource, InetSocketAddress origin, int tid,Map<Integer,Long> responseTime) {
