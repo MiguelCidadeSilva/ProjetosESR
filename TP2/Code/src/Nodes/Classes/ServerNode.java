@@ -105,9 +105,9 @@ public class ServerNode {
     }
     protected List<InetAddress> getBestNeighbours(String resource) {
         this.lockBestN.readLock().lock();
-        List<InetAddress> bestneighbours = new ArrayList<>(this.bestNeighbours.get(resource));
+        List<InetAddress> bestneighbours = this.bestNeighbours.get(resource);
         this.lockBestN.readLock().unlock();
-        return bestneighbours;
+        return bestneighbours != null ? new ArrayList<>(bestneighbours) : null;
     }
     // Método que recebe frames / partes de audio / partes do texto
 
@@ -117,11 +117,16 @@ public class ServerNode {
     // Método que replica o conteudo recebido por todos os clientes
     public List<InetAddress> getClientList(StreamingPacket streamingPacket) {
         String resource = streamingPacket.getResource();
+	List<InetAddress> clients;
         lock.readLock().lock();
-        resourceLocks.get(resource).readLock().lock();
-        List<InetAddress> clients = new ArrayList<>(clientsResourceMap.get(resource));
-        resourceLocks.get(resource).readLock().unlock();
-        lock.readLock().unlock();
+	if(this.hasResource(resource)) {
+        	resourceLocks.get(resource).readLock().lock();
+        	clients = new ArrayList<>(clientsResourceMap.get(resource));
+        	resourceLocks.get(resource).readLock().unlock();
+        }
+	else
+		clients = new ArrayList<>();
+ 	lock.readLock().unlock();
         return clients;
     }
 

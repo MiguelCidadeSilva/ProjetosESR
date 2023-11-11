@@ -14,7 +14,7 @@ public class ServerRPExec {
         rp.addResourceRP(resource);
     }
     public static void testAskHasResourceDB(ServerRP rp, String resource) throws InterruptedException, UnknownHostException {
-        byte b1 = rp.receiveRequest(new HelperConnection(resource, InetAddress.getLocalHost()));
+        byte b1 = rp.receiveRequest(new HelperConnection(resource, InetAddress.getByName("10.0.11.10")));
         String b1str = Byte.toString(b1);
         System.out.println("Código recebido = " + b1str);
     }
