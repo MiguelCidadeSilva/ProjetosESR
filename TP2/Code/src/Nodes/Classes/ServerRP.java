@@ -53,7 +53,7 @@ public class ServerRP extends ServerNode{
                 nosucess = false;
             }
             socket.close();
-        } catch (IOException | InterruptedException e) {System.out.println(e.getMessage());}
+        } catch (IOException e) {System.out.println(e.getMessage());}
         return nosucess;
     }
     public ServerRP(String fileIps) {

@@ -10,10 +10,7 @@ import Protocols.ProtocolTransferContent;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -126,16 +123,21 @@ public class ServerNode {
         return clients;
     }
 
-    public void multicast(StreamingPacket packet) throws InterruptedException {
+    public void multicast(StreamingPacket packet) throws IOException {
         List<InetSocketAddress> clients = getClientList(packet);
         Debug.printTask("A fazer multicast do recurso " + packet.getResource() + " para os clientes: " + clients.stream().map(i -> i.getAddress().getHostAddress()).toList());
+        Debug.printTask("A encapsular o pacote");
+        DatagramPacket dp = ProtocolTransferContent.encapsulate(packet);
+        Debug.printTask("Pacote encapsulado, DatagramPacket resultante: "+dp);
         for (InetSocketAddress client : clients) {
-            Debug.printTask("A fazer multitask para o cliente: "+client);
-            Debug.printTask("A criar conexão...");
-            HelperConnection hc = new HelperConnection(packet.getResource(),client);
-            Debug.printTask("Conexão criada com sucesso para transmitir o recurso: " +packet.getResource() + " para o cliente "+client);
-            receiveRequest(hc);
-            Debug.printTask("Multitask efetuado com sucesso.");
+            Debug.printTask("Criação de socket...");
+            DatagramSocket ds = new DatagramSocket(client.getPort(),client.getAddress());
+            Debug.printTask("Socket criado para a porta "+client.getPort() + " do cliente "+client.getAddress());
+            Debug.printTask("Envio do datagrama");
+            ds.send(dp);
+            Debug.printTask("Datagrama enviado.");
+            ds.close();
+            Debug.printTask("Socket fechado.");
         }
     }
 
