@@ -7,12 +7,11 @@ import Nodes.Utils.Cods;
 import Protocols.ProtocolStartStreaming;
 
 import java.io.*;
-import java.net.InetSocketAddress;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ServerRP extends ServerNode{
@@ -27,22 +26,21 @@ public class ServerRP extends ServerNode{
         } catch (IOException ignored) {}
     }
     // Contacta um servidor que contem a base de dados
-    public boolean contactServerDB(InetSocketAddress server, String resource) {
+    public boolean contactServerDB(InetAddress server, String resource) {
         boolean nosucess = true;
         try {
-            Socket socket        = new Socket(server.getAddress().getHostAddress(), Cods.portDB);
+            Socket socket        = new Socket(server.getHostAddress(), Cods.portDB);
             DataInputStream  dis = new DataInputStream(socket.getInputStream());
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-            ProtocolLoadContent.encapsulateRequest(resource,dos,true, server.getAddress().getHostAddress());
+            ProtocolLoadContent.encapsulateRequest(resource,dos,true, server.getHostAddress());
             StreamingPacket packet = ProtocolLoadContent.decapsulateContent(dis);
+            multicast(packet);
             if(packet.getType() == Cods.codNoExist)
             {
                 Debug.printError("Recurso não existe");
             }
             else
             {
-                this.addResource(resource);
-                multicast(packet);
                 while(packet.getType() != Cods.codEndStream) {
                     Debug.printStramingPacket(packet);
                     multicast(packet);
@@ -65,10 +63,10 @@ public class ServerRP extends ServerNode{
         if(!this.hasResource(resource))
         {
             Debug.printTask("A organizar os servidores a contactar");
-            List<InetSocketAddress> dbServers = this.getBestNeighbours(resource);
+            List<InetAddress> dbServers = this.getBestNeighbours(resource);
             if(dbServers == null)
                 dbServers = OrganizeIps.organizeIps(this.getNeighbours());
-            Debug.printTask("Ordem: " + dbServers.stream().map(ip -> ip.getAddress().getHostAddress()).toList().toString());
+            Debug.printTask("Ordem: " + dbServers.stream().map(InetAddress::getHostAddress).toList().toString());
             boolean noFound = true;
             for(int i = 0; i < dbServers.size() && noFound; i++)
                 noFound = contactServerDB(dbServers.get(i),resource);
@@ -77,7 +75,7 @@ public class ServerRP extends ServerNode{
             return !noFound;
         }
         else
-            Debug.printTask("RP contém o conteudo. Não fazer pedido ao servidor");
+            Debug.printTask("RP contém o conteudo. Não vai fazer pedido ao servidor DB");
         return true;
     }
 
@@ -88,7 +86,8 @@ public class ServerRP extends ServerNode{
             DataInputStream dis = new DataInputStream(socket.getInputStream());
             String resource = ProtocolStartStreaming.decapsulate(dis);
             socket.close();
-            this.addClient(resource,new InetSocketAddress(socket.getInetAddress(),Cods.portStreamingContent));
+            this.addResource(resource);
+            this.addClient(resource,socket.getInetAddress());
             return this.addResourceRP(resource);
         } catch (IOException  e) {
             throw new RuntimeException(e);

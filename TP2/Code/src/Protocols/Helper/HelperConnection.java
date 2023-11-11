@@ -1,5 +1,5 @@
 package Protocols.Helper;
 
-import java.net.InetSocketAddress;
+import java.net.InetAddress;
 
-public record HelperConnection(String name, InetSocketAddress address) { }
+public record HelperConnection(String name, InetAddress address) { }

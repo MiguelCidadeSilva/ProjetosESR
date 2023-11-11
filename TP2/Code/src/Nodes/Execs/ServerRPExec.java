@@ -4,7 +4,8 @@ import Nodes.Classes.ServerRP;
 import Protocols.Helper.HelperConnection;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public class ServerRPExec {
     // java nome_exec file
@@ -12,8 +13,8 @@ public class ServerRPExec {
     public static void testStreamRPDB(ServerRP rp, String resource) {
         rp.addResourceRP(resource);
     }
-    public static void testAskHasResourceDB(ServerRP rp, String resource) throws InterruptedException {
-        byte b1 = rp.receiveRequest(new HelperConnection(resource,new InetSocketAddress("127.0.0.1",8002)));
+    public static void testAskHasResourceDB(ServerRP rp, String resource) throws InterruptedException, UnknownHostException {
+        byte b1 = rp.receiveRequest(new HelperConnection(resource, InetAddress.getLocalHost()));
         String b1str = Byte.toString(b1);
         System.out.println("Código recebido = " + b1str);
     }

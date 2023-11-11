@@ -9,6 +9,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.DatagramPacket;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.HashMap;
@@ -20,7 +21,7 @@ public class ProtocolBuildTree {
     public static final byte loop = 0;
     public static final byte found = 1;
     public static final byte nofound = 2;
-    public static void encapsulateAsk(InetSocketAddress ipO, String name, DataOutputStream dos) throws IOException {
+    public static void encapsulateAsk(InetAddress ipO, String name, DataOutputStream dos) throws IOException {
         int capacity = HelperContentWriter.calculateCapacity(0, List.of(name), Collections.singleton(new byte[0]),ipO);
         HelperContentWriter hcp = new HelperContentWriter(capacity);
         hcp.writeIp(ipO);
@@ -30,7 +31,7 @@ public class ProtocolBuildTree {
     }
     public static HelperConnection decapsulateAsk(DataInputStream dos) {
         HelperContentReader hcr = HelperProtocols.readContentTCP(dos);
-        InetSocketAddress ipO = hcr.readIp();
+        InetAddress ipO = hcr.readIp();
         String name = hcr.readStr();
         return new HelperConnection(name,ipO);
     }

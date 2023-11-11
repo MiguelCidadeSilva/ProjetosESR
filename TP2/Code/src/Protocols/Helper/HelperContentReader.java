@@ -1,6 +1,7 @@
 package Protocols.Helper;
 
-import java.net.InetSocketAddress;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
 public class HelperContentReader {
@@ -27,10 +28,11 @@ public class HelperContentReader {
         return byteBuffer.array();
     }
 
-    public InetSocketAddress readIp() {
+    public InetAddress readIp() {
         String ip = readStr();
-        int port = readInt();
-        return new InetSocketAddress(ip,port);
+        InetAddress res = null;
+        try {res = InetAddress.getByName(ip);} catch (UnknownHostException ignored) {}
+        return res;
     }
 
     public boolean hasContent() {

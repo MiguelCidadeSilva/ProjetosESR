@@ -5,7 +5,7 @@ import Protocols.ProtocolLoadContent;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.InetSocketAddress;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -14,13 +14,13 @@ import java.util.Map;
 
 public class OrganizeIps {
 
-    public static List<InetSocketAddress> organizeIps(List<InetSocketAddress> ips)  {
+    public static List<InetAddress> organizeIps(List<InetAddress> ips)  {
         Map<String,Long[]> times = new HashMap<>();
         List<Thread> threads = new ArrayList<>();
-        for (InetSocketAddress ip : ips) {
+        for (InetAddress ip : ips) {
             Long[] timesaux = new Long[2];
-            times.put(ip.getAddress().getHostAddress(), timesaux);
-            Thread t = getThread(ip.getAddress().getHostAddress(), times);
+            times.put(ip.getHostAddress(), timesaux);
+            Thread t = getThread(ip.getHostAddress(), times);
             t.start();
             threads.add(t);
         }
@@ -29,7 +29,7 @@ public class OrganizeIps {
         }
         Map<String,Long> differenceTimes = new HashMap<>();
         times.forEach((ip,array) -> differenceTimes.put(ip,array[1]-array[0]));
-        return ips.stream().sorted((s1,s2) -> Math.toIntExact(differenceTimes.get(s2.getAddress().getHostAddress()) - differenceTimes.get(s1.getAddress().getHostAddress()))).toList();
+        return ips.stream().sorted((s1,s2) -> Math.toIntExact(differenceTimes.get(s2.getHostAddress()) - differenceTimes.get(s1.getHostAddress()))).toList();
     }
 
     private static Thread getThread(String ip, Map<String, Long[]> times) {

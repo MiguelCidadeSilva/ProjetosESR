@@ -10,8 +10,9 @@ import java.net.Socket;
 public class ServerDBExec {
     // java nome_exec file
     // file contem lista de ficheiros com conteudo
-    public static void deliverContent(ServerSocket serverSocket, ServerDB sdb) {
-        try {
+    public static void deliverContent(ServerDB sdb) {
+        try(ServerSocket serverSocket = new ServerSocket(Cods.portDB))
+        {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 Thread t1 = new Thread(() -> sdb.repondeRP(clientSocket));
@@ -22,8 +23,9 @@ public class ServerDBExec {
         }
 
     }
-    public static void deliverTree(ServerSocket serverSocket, ServerDB sdb) {
-        try {
+    public static void deliverTree(ServerDB sdb) {
+        try(ServerSocket serverSocket = new ServerSocket(Cods.portSOConnections))
+        {
             while (true) {
                 Socket clientSocket = serverSocket.accept();
                 Thread t1 = new Thread(() -> sdb.hasResource(clientSocket));
@@ -34,13 +36,11 @@ public class ServerDBExec {
         }
 
     }
-    public static void main(String [] args) throws IOException {
+    public static void main(String [] args) {
         ServerDB sdb = new ServerDB(args[0]);
-        ServerSocket serverSocketContent = new ServerSocket(Cods.portDB);
-        ServerSocket serverSocketTree = new ServerSocket(Cods.portSOConnections);
         System.out.println("ServerDB is listening at the ports " + Cods.portDB + " and " + Cods.portSOConnections);
-        Thread tcontent =  new Thread(() -> deliverContent(serverSocketContent,sdb));
+        Thread tcontent =  new Thread(() -> deliverContent(sdb));
         tcontent.start();
-        deliverTree(serverSocketTree,sdb);
+        deliverTree(sdb);
     }
 }

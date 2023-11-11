@@ -1,5 +1,6 @@
 package Protocols.Helper;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.Collection;
@@ -30,12 +31,11 @@ public class HelperContentWriter {
     public byte[] getBytesInfo(){
         return byteBuffer.array();
     }
-    public void writeIp(InetSocketAddress ip) {
+    public void writeIp(InetAddress ip) {
         writeStr(ip.getHostName());
-        writeInt(ip.getPort());
     }
 
-    public static int calculateCapacity(int numbers_integer, Collection<String> strings, Collection<byte[]> bytes, InetSocketAddress ip){
+    public static int calculateCapacity(int numbers_integer, Collection<String> strings, Collection<byte[]> bytes, InetAddress ip){
         if(bytes == null)
             bytes = List.of();
         if(strings == null)
