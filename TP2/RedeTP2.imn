@@ -78,6 +78,14 @@ node n3 {
     interface-peer {eth2 n15}
     interface-peer {eth3 n21}
     interface-peer {eth0 n27}
+    custom-config {
+	custom-config-id service:UserDefined
+	custom-command UserDefined
+	config {
+	cmdup=('cp -r /home/core/ProjetosESR/TP2/Code .', )
+	}
+    }
+    services {OSPFv2 OSPFv3 zebra IPForward UserDefined}
 }
 
 node n4 {
@@ -85,6 +93,10 @@ node n4 {
     model router
     network-config {
 	hostname Router2
+	!
+	interface eth2
+	 ip address 10.0.21.1/24
+	 ipv6 address 2001:21::1/64
 	!
 	interface eth0
 	 ip address 10.0.17.2/24
@@ -104,12 +116,21 @@ node n4 {
 	!
     }
     canvas c1
-    iconcoords {492.0 342.0}
-    labelcoords {491.0 376.0}
+    iconcoords {494.0 342.0}
+    labelcoords {493.0 376.0}
     interface-peer {eth1 n5}
     interface-peer {eth4 n18}
     interface-peer {eth5 n26}
     interface-peer {eth0 n25}
+    custom-config {
+	custom-config-id service:UserDefined
+	custom-command UserDefined
+	config {
+	cmdup=('cp -r /home/core/ProjetosESR/TP2/Code .', )
+	}
+    }
+    services {OSPFv2 OSPFv3 zebra IPForward UserDefined}
+    interface-peer {eth2 n16}
 }
 
 node n5 {
@@ -142,6 +163,14 @@ node n5 {
     interface-peer {eth1 n16}
     interface-peer {eth2 n19}
     interface-peer {eth3 n25}
+    custom-config {
+	custom-config-id service:UserDefined
+	custom-command UserDefined
+	config {
+	cmdup=('cp -r /home/core/ProjetosESR/TP2/Code .', )
+	}
+    }
+    services {OSPFv2 OSPFv3 zebra IPForward UserDefined}
 }
 
 node n6 {
@@ -330,6 +359,14 @@ node n15 {
     interface-peer {eth0 n3}
     interface-peer {eth2 n20}
     interface-peer {eth1 n26}
+    custom-config {
+	custom-config-id service:UserDefined
+	custom-command UserDefined
+	config {
+	cmdup=('cp -r /home/core/ProjetosESR/TP2/Code .', )
+	}
+    }
+    services {OSPFv2 OSPFv3 zebra IPForward UserDefined}
 }
 
 node n16 {
@@ -337,6 +374,10 @@ node n16 {
     model router
     network-config {
 	hostname Router6
+	!
+	interface eth3
+	 ip address 10.0.21.2/24
+	 ipv6 address 2001:21::2/64
 	!
 	interface eth2
 	 ip address 10.0.12.1/24
@@ -352,11 +393,20 @@ node n16 {
 	!
     }
     canvas c1
-    iconcoords {718.0 375.0}
-    labelcoords {718.0 407.0}
+    iconcoords {719.0 380.0}
+    labelcoords {719.0 412.0}
     interface-peer {eth0 n5}
     interface-peer {eth1 n18}
     interface-peer {eth2 n22}
+    custom-config {
+	custom-config-id service:UserDefined
+	custom-command UserDefined
+	config {
+	cmdup=('cp -r /home/core/ProjetosESR/TP2/Code .', )
+	}
+    }
+    services {OSPFv2 OSPFv3 zebra IPForward UserDefined}
+    interface-peer {eth3 n4}
 }
 
 node n17 {
@@ -379,11 +429,19 @@ node n17 {
 	!
     }
     canvas c1
-    iconcoords {457.0 85.0}
-    labelcoords {457.0 117.0}
+    iconcoords {460.0 85.0}
+    labelcoords {460.0 117.0}
     interface-peer {eth0 n3}
     interface-peer {eth2 n23}
     interface-peer {eth1 n25}
+    custom-config {
+	custom-config-id service:UserDefined
+	custom-command UserDefined
+	config {
+	cmdup=('cp -r /home/core/ProjetosESR/TP2/Code .', )
+	}
+    }
+    services {OSPFv2 OSPFv3 zebra IPForward UserDefined}
 }
 
 node n18 {
@@ -416,6 +474,14 @@ node n18 {
     interface-peer {eth1 n4}
     interface-peer {eth2 n24}
     interface-peer {eth3 n26}
+    custom-config {
+	custom-config-id service:UserDefined
+	custom-command UserDefined
+	config {
+	cmdup=('cp -r /home/core/ProjetosESR/TP2/Code .', )
+	}
+    }
+    services {OSPFv2 OSPFv3 zebra IPForward UserDefined}
 }
 
 node n19 {
@@ -558,6 +624,14 @@ node n27 {
     interface-peer {eth0 n26}
     interface-peer {eth1 n25}
     interface-peer {eth2 n3}
+    custom-config {
+	custom-config-id service:UserDefined
+	custom-command UserDefined
+	config {
+	cmdup=('cp -r /home/core/ProjetosESR/TP2/Code .', )
+	}
+    }
+    services {OSPFv2 OSPFv3 zebra IPForward UserDefined}
 }
 
 node n25 {
@@ -749,6 +823,11 @@ link l31 {
 
 link l32 {
     nodes {n3 n27}
+    bandwidth 0
+}
+
+link l33 {
+    nodes {n4 n16}
     bandwidth 0
 }
 

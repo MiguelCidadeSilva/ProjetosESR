@@ -2,7 +2,7 @@ package Nodes.Execs;
 
 import Nodes.Classes.ServerRP;
 import Protocols.Helper.HelperConnection;
-
+import java.util.List;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -31,7 +31,10 @@ public class ServerRPExec {
                     break;
             }
         }
-        else
-            rp.initServer();
+        else {
+		List<Thread> lista = rp.initServer();
+		for(Thread t : lista)
+			t.join();
+	}
     }
 }

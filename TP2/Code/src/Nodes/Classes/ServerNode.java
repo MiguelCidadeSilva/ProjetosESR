@@ -300,6 +300,7 @@ public class ServerNode {
     }
 
     private void serverRequest() {
+	Debug.printTask("Servidor request aberto");
         try(ServerSocket serverSocket = new ServerSocket(Cods.portSOConnections))
         {
             while (true) {
@@ -314,6 +315,7 @@ public class ServerNode {
     }
 
     private void serverStartStreaming() {
+	Debug.printTask("Servidor start streaming aberto");
         try(ServerSocket serverSocket = new ServerSocket(Cods.portStartStreaming))
         {
             while (true) {
@@ -326,6 +328,7 @@ public class ServerNode {
         }
     }
     private void serverMulticast() {
+	Debug.printTask("Servidor multicast aberto");
         try (DatagramSocket socket = new DatagramSocket(Cods.portStreamingContent))
         {
             byte[] buffer = new byte[20000];
@@ -340,11 +343,13 @@ public class ServerNode {
             throw new RuntimeException(e);
         }
     }
-    public void initServer(){
-        Thread taux1 =  new Thread(this::serverRequest);
-        Thread taux2 =  new Thread(this::serverMulticast);
+    public List<Thread> initServer(){
+        Thread taux1 = new Thread(this::serverRequest);
+        Thread taux2 = new Thread(this::serverMulticast);
+        Thread taux3 = new Thread(this::serverStartStreaming);
+	taux1.start();
         taux2.start();
-        taux1.start();
-        serverStartStreaming();
+	taux3.start();
+        return List.of(taux1,taux2,taux3);
     }
 }
