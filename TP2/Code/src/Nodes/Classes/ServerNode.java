@@ -129,9 +129,13 @@ public class ServerNode {
     public void multicast(StreamingPacket packet) throws InterruptedException {
         List<InetSocketAddress> clients = getClientList(packet);
         Debug.printTask("A fazer multicast do recurso " + packet.getResource() + " para os clientes: " + clients.stream().map(i -> i.getAddress().getHostAddress()).toList());
-        for (InetSocketAddress client :clients) {
+        for (InetSocketAddress client : clients) {
+            Debug.printTask("A fazer multitask para o cliente: "+client);
+            Debug.printTask("A criar conexão...");
             HelperConnection hc = new HelperConnection(packet.getResource(),client);
+            Debug.printTask("Conexão criada com sucesso para transmitir o recurso: " +packet.getResource() + " para o cliente "+client);
             receiveRequest(hc);
+            Debug.printTask("Multitask efetuado com sucesso.");
         }
     }
 
