@@ -1,4 +1,3 @@
-import Nodes.Utils.Compresser;
 import Nodes.Utils.VideoExtractor;
 import Protocols.Helper.HelperContentReader;
 import Protocols.Helper.HelperContentWriter;
@@ -62,10 +61,10 @@ public class Main {
         System.out.println(ve.getFrameRate());
         System.out.println(ve.getVideo());
         byte[] frames = ve.nextFrames().get(0);
-        byte[] compressed = Compresser.compress(frames);
-        byte[] decompressed = Compresser.decompress(compressed);
+        //byte[] compressed = Compresser.compress(frames);
+        //byte[] decompressed = Compresser.decompress(compressed);
         System.out.println(frames.length);
-        System.out.println(compressed.length);
-        System.out.println(decompressed.length);
+        //System.out.println(compressed.length);
+        //System.out.println(decompressed.length);
     }
 }
