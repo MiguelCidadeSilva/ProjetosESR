@@ -138,10 +138,16 @@ public class ServerNode {
         Debug.printTask("Pacote encapsulado, DatagramPacket resultante: "+dp);
         for (InetAddress client : clients) {
             Debug.printTask("Criação de socket...");
-            DatagramSocket ds = new DatagramSocket(Cods.portStreamingContent,client);
-            Debug.printTask("Socket criado para a porta "+ Cods.portStreamingContent + " do cliente "+ client.getHostAddress());
-            Debug.printTask("Envio do datagrama");
-            ds.send(dp);
+            DatagramSocket ds = new DatagramSocket(); // Cods.portStreamingContent,client);
+            Debug.printTask("Socket UDP criado, a clonar datagrama");
+	    DatagramPacket clonedPacket = new DatagramPacket(
+    		Arrays.copyOf(dp.getData(), dp.getLength()),
+    		dp.getLength(),
+    		client,
+    		Cods.portStreamingContent
+	    );
+            Debug.printTask("Envio do datagrama clonado");
+            ds.send(clonedPacket);
             Debug.printTask("Datagrama enviado.");
             ds.close();
             Debug.printTask("Socket fechado.");
@@ -284,7 +290,7 @@ public class ServerNode {
         this.addResource(resource);
         this.addClient(resource,ip);
         List<InetAddress> bestneighbours = this.getBestNeighbours(resource);
-        Debug.printTask("Vizinhos que a contactar :" + bestneighbours.stream().map(InetAddress::getAddress).toList());
+        Debug.printTask("Vizinhos que a contactar :" + bestneighbours.stream().map(InetAddress::getHostAddress).toList());
         boolean sucess = false;
         for(int i = 0; i < bestneighbours.size() && !sucess; i++)
             sucess = contactNeighbourStartStreaming(bestneighbours.get(i),resource);

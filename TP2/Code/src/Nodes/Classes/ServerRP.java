@@ -59,9 +59,12 @@ public class ServerRP extends ServerNode{
         buildBaseDirectory();
     }
 
-    public boolean addResourceRP(String resource) {
+    public boolean addResourceRP(String resource, InetAddress client, boolean teste) {
         if(!this.hasResource(resource))
         {
+	    this.addResource(resource);
+	    if(!teste)
+ 	    	this.addClient(resource,client);
             Debug.printTask("A organizar os servidores a contactar");
             List<InetAddress> dbServers = this.getBestNeighbours(resource);
             if(dbServers == null)
@@ -75,7 +78,10 @@ public class ServerRP extends ServerNode{
             return !noFound;
         }
         else
-            Debug.printTask("RP contém o conteudo. Não vai fazer pedido ao servidor DB");
+        {
+	    Debug.printTask("RP contém o conteudo. Não vai fazer pedido ao servidor DB");
+            this.addClient(resource,client);
+        }
         return true;
     }
 
@@ -86,9 +92,7 @@ public class ServerRP extends ServerNode{
             DataInputStream dis = new DataInputStream(socket.getInputStream());
             String resource = ProtocolStartStreaming.decapsulate(dis);
             socket.close();
-            this.addResource(resource);
-            this.addClient(resource,socket.getInetAddress());
-            return this.addResourceRP(resource);
+            return this.addResourceRP(resource,socket.getInetAddress(),false);
         } catch (IOException  e) {
             throw new RuntimeException(e);
         }
