@@ -7,7 +7,6 @@ import Nodes.Utils.VideoExtractor;
 import Protocols.Helper.HelperContentReader;
 import Protocols.Helper.HelperContentWriter;
 import Protocols.Helper.HelperProtocols;
-import Protocols.Utils.FramesAux;
 import Protocols.Utils.Manager;
 
 import java.io.DataInputStream;
@@ -15,8 +14,6 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class ProtocolLoadContent{
@@ -37,13 +34,13 @@ public class ProtocolLoadContent{
         Manager.showSendPacket("Pedido de recurso", nrbytes,destiny);
     }
 
-    private static HelperContentWriter writePacket(StreamingPacket streamingPacket, String tarefa, String destiny, int number) {
+    private static HelperContentWriter writePacket(StreamingPacket streamingPacket, String destiny, int number) {
         int capacity = HelperContentWriter.calculateCapacity(1, List.of(streamingPacket.getResource()),List.of(streamingPacket.getContent()),null);
 
         LocalTime currentTime = LocalTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
         String formattedTime = currentTime.format(formatter);
-        Debug.printTask(formattedTime + " | Encapsular pacote de "+tarefa+" com " + capacity + " bytes (" + streamingPacket.getContent().length + " bytes)" + " para o destino: " + destiny + ". Restam " + number + " pacotes de " +tarefa);
+        Debug.printTask(formattedTime + " | Encapsular pacote " + streamingPacket + " para o destino: " + destiny + ". Restam " + number + " pacotes de " + streamingPacket.getTask());
         HelperContentWriter hcw = new HelperContentWriter(capacity);
         hcw.writeStr(streamingPacket.getResource());
         hcw.writeInt(streamingPacket.getType());
@@ -52,17 +49,18 @@ public class ProtocolLoadContent{
     }
     public static void encapsulateEndStream(VideoExtractor ve, DataOutputStream dos,boolean flush, String destiny) throws IOException {
         StreamingPacket streamingPacket = new StreamingPacket(ve.getVideo(), Cods.codEndStream,new byte[0]);
-        HelperContentWriter hcw = writePacket(streamingPacket, "fim de stream",destiny, ve.framesLeft());
+        HelperContentWriter hcw = writePacket(streamingPacket,destiny, ve.framesLeft());
         HelperProtocols.writeContentTCP(hcw,dos);
         makeFlush(dos,flush);
     }
     public static void encapsulateAudio(VideoExtractor ve, DataOutputStream dos, boolean flush, String destiny) throws IOException {
         byte[] audio = ve.nextAudio();
         StreamingPacket streamingPacket = new StreamingPacket(ve.getVideo(),Cods.codAudio,audio);
-        HelperContentWriter hcw = writePacket(streamingPacket,"audio",destiny, ve.audioLeft());
+        HelperContentWriter hcw = writePacket(streamingPacket,destiny, ve.audioLeft());
         HelperProtocols.writeContentTCP(hcw,dos);
         makeFlush(dos,flush);
     }
+    /*
     public static void encapsulateVideo(VideoExtractor ve,DataOutputStream dos,boolean flush, String destiny) throws IOException {
         List<byte[]> frames = ve.nextFrames();
         StreamingPacket streamingPacket = new StreamingPacket(ve.getVideo(),Cods.codVideo, FramesAux.encapsulateFrames(frames));
@@ -70,21 +68,20 @@ public class ProtocolLoadContent{
         HelperProtocols.writeContentTCP(hcw,dos);
         makeFlush(dos,flush);
     }
+    */
+    public static long encapsulateVideo(VideoExtractor ve,DataOutputStream dos,boolean flush, String destiny) throws IOException {
+        long starttime = System.currentTimeMillis();
+        List<StreamingPacket> frames = ve.nextFrames().stream().map(frame -> new StreamingPacket(ve.getVideo(),Cods.codVideo, frame)).toList();
+        List<HelperContentWriter> hcws = frames.stream().map(frame -> writePacket(frame,destiny,ve.framesLeft())).toList();
+        hcws.forEach(hcw -> HelperProtocols.writeContentTCP(hcw,dos));
+        makeFlush(dos,flush);
+        return System.currentTimeMillis() - starttime;
+    }
     public static void encapsulateNoExist(String resource,DataOutputStream dos,boolean flush, String destiny) throws IOException {
         StreamingPacket streamingPacket = new StreamingPacket(resource,Cods.codNoExist,new byte[0]);
-        HelperContentWriter hcw = writePacket(streamingPacket,"não existe",destiny, 0);
+        HelperContentWriter hcw = writePacket(streamingPacket,destiny, 0);
         HelperProtocols.writeContentTCP(hcw,dos);
         makeFlush(dos,flush);
-    }
-    private static byte[] concatenateByteArrays(List<byte[]> byteArrayList) {
-        int totalLength = byteArrayList.stream().mapToInt(array -> array.length).sum();
-        byte[] result = new byte[totalLength];
-        int currentIndex = 0;
-        for (byte[] byteArray : byteArrayList) {
-            System.arraycopy(byteArray, 0, result, currentIndex, byteArray.length);
-            currentIndex += byteArray.length;
-        }
-        return result;
     }
     public static StreamingPacket decapsulateContent(DataInputStream dis) throws IOException {
         Debug.printTask("À espera de pacotes de streaming");

@@ -140,12 +140,12 @@ public class ServerNode {
             Debug.printTask("Criação de socket...");
             DatagramSocket ds = new DatagramSocket(); // Cods.portStreamingContent,client);
             Debug.printTask("Socket UDP criado, a clonar datagrama");
-	    DatagramPacket clonedPacket = new DatagramPacket(
-    		Arrays.copyOf(dp.getData(), dp.getLength()),
-    		dp.getLength(),
-    		client,
-    		Cods.portStreamingContent
-	    );
+            DatagramPacket clonedPacket = new DatagramPacket(
+                Arrays.copyOf(dp.getData(), dp.getLength()),
+                dp.getLength(),
+                client,
+                Cods.portStreamingContent
+            );
             Debug.printTask("Envio do datagrama clonado");
             ds.send(clonedPacket);
             Debug.printTask("Datagrama enviado.");

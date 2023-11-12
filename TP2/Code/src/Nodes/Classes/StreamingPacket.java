@@ -1,5 +1,9 @@
 package Nodes.Classes;
 
+import Nodes.Utils.Cods;
+
+import java.util.Arrays;
+
 public class StreamingPacket {
     private String resource;
     private int type;
@@ -21,5 +25,12 @@ public class StreamingPacket {
 
     public byte[] getContent() {
         return content;
+    }
+    public String getTask() {
+         return this.type == Cods.codAudio ? "Audio" : this.type == Cods.codVideo ? "Video" : "End stream";
+    }
+    @Override
+    public String toString() {
+        return "(" + this.resource + ","  + this.getTask() + "," + this.getContent().length + " bytes)";
     }
 }

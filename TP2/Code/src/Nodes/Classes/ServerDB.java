@@ -41,8 +41,9 @@ public class ServerDB {
         {
             if(ve.hasAudio())
                 ProtocolLoadContent.encapsulateAudio(ve,dos,true,destiny);
-            ProtocolLoadContent.encapsulateVideo(ve,dos,true,destiny);
-            Thread.sleep(1000);
+            long time = ProtocolLoadContent.encapsulateVideo(ve,dos,true,destiny);
+            if(time < 1000)
+                Thread.sleep(1000-time);
         }
         ProtocolLoadContent.encapsulateEndStream(ve,dos,true,destiny);
         Debug.printTask("Recurso " + resource + ": terminou streaming");

@@ -8,7 +8,6 @@ import Protocols.ProtocolTransferContent;
 
 import java.io.*;
 import java.net.*;
-import java.util.List;
 
 public class Client {
     private final InetAddress ipclient;
@@ -79,8 +78,7 @@ public class Client {
         }
     }
 
-
-    private List<DatagramPacket> getContent(){
+    private void getContent(){
         Debug.printTask("Criação do socket UDP");
         try (DatagramSocket socket = new DatagramSocket(Cods.portStreamingContent))
         {
@@ -90,6 +88,7 @@ public class Client {
                 DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
                 socket.receive(receivePacket);
                 StreamingPacket packet = ProtocolTransferContent.decapsulate(receivePacket);
+                Debug.printTask("Pacote de streaming recebido" + packet.toString());
             }
         }
         catch (IOException e) {
