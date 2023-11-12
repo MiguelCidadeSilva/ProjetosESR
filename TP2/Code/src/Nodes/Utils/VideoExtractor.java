@@ -45,7 +45,7 @@ public class VideoExtractor {
     }
     private void extractAudio(String audioFolder,String file) throws IOException, InterruptedException {
         System.out.println("A extrair audio");
-        String command = "ffmpeg -i " + file + " -vn -c:a mp3 -f segment -segment_time " + segundosAudio +" " + audioFolder + "/audio%03d.mp3";
+        String command = "ffmpeg -i " + file + " -vn -c:a pcm_s16le -f segment -segment_time " + segundosAudio +" " + audioFolder + "/audio%03d.wav";
         runProcess(command);
         audio = readBytesDirectory(audioFolder);
         System.out.println("Audio extraido");

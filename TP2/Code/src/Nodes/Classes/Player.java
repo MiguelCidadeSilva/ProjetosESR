@@ -17,11 +17,6 @@ public class Player {
     JPanel mainPanel = new JPanel();
     JPanel buttonPanel = new JPanel();
     JLabel iconLabel = new JLabel();
-
-    byte[] buf;
-
-
-    Timer cTimer;
     private Clip clip;
 
     public Player() {
@@ -57,17 +52,10 @@ public class Player {
         player.getContentPane().add(mainPanel, BorderLayout.CENTER);
         player.setSize(new Dimension(600,400));
         player.setVisible(true);
-
-
-        //allocate enough memory for the buffer used to receive data from the server
-        buf = new byte[15000];
-
     }
     class playButtonListener implements ActionListener {
         public void actionPerformed(ActionEvent e){
-
             System.out.println("Play Button pressed !");
-            cTimer.start();
         }
     }
 
@@ -75,9 +63,6 @@ public class Player {
         public void actionPerformed(ActionEvent e){
 
             System.out.println("Teardown Button pressed !");
-            //stop the timer
-            cTimer.stop();
-            //exit
             System.exit(0);
         }
     }
@@ -92,8 +77,6 @@ public class Player {
     public void updateFrame(byte[] frame) {
         Toolkit toolkit = Toolkit.getDefaultToolkit();
         Image image = toolkit.createImage(frame, 0, frame.length);
-
-        //display the image as an ImageIcon object
         ImageIcon icon = new ImageIcon(image);
         iconLabel.setIcon(icon);
     }
