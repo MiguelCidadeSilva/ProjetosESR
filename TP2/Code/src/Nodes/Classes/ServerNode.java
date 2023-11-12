@@ -135,7 +135,7 @@ public class ServerNode {
         Debug.printTask("A fazer multicast do recurso " + packet.getResource() + " para os clientes: " + clients.stream().map(InetAddress::getHostAddress).toList());
         Debug.printTask("A encapsular o pacote");
         DatagramPacket dp = ProtocolTransferContent.encapsulate(packet);
-        Debug.printTask("Pacote encapsulado, DatagramPacket resultante: "+dp);
+        Debug.printTask("Pacote encapsulado, DatagramPacket resultante: "+packet);
         for (InetAddress client : clients) {
             Debug.printTask("Criação de socket...");
             DatagramSocket ds = new DatagramSocket(); // Cods.portStreamingContent,client);
@@ -346,7 +346,7 @@ public class ServerNode {
 	    Debug.printTask("Servidor multicast aberto");
         try (DatagramSocket socket = new DatagramSocket(Cods.portStreamingContent))
         {
-            byte[] buffer = new byte[20000];
+            byte[] buffer = new byte[50000];
             while (true) {
                 DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
                 socket.receive(receivePacket);

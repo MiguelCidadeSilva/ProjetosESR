@@ -21,7 +21,6 @@ public class Client {
     public void start(String resource) throws IOException {
         Debug.printTask("Inicio de criação da árvore.");
         byte tree = requestTree(resource);
-        Debug.printTask("Árvore Criada com sucesso");
         switch (tree) {
             case 0: //loop
                 Debug.printTask("Erro, a rede entrou em loop.");
@@ -82,14 +81,16 @@ public class Client {
         Debug.printTask("Criação do socket UDP");
         try (DatagramSocket socket = new DatagramSocket(Cods.portStreamingContent))
         {
-            byte[] buffer = new byte[20000];
+            byte[] buffer = new byte[50000];
             Debug.printTask("Receção de pacotes UDP.");
-            while (true) {
+	    boolean streaming = true;
+            while (streaming) {
                 DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
                 socket.receive(receivePacket);
                 StreamingPacket packet = ProtocolTransferContent.decapsulate(receivePacket);
                 Debug.printTask("Pacote de streaming recebido" + packet.toString());
-            }
+            	streaming = packet.getType() != Cods.codEndStream;
+	    }
         }
         catch (IOException e) {
             throw new RuntimeException(e);

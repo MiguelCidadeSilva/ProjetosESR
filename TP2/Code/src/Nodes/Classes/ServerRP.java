@@ -43,8 +43,8 @@ public class ServerRP extends ServerNode{
             {
                 while(packet.getType() != Cods.codEndStream) {
                     Debug.printStramingPacket(packet);
-                    multicast(packet);
                     packet = ProtocolLoadContent.decapsulateContent(dis);
+		    multicast(packet);
                 }
                 Debug.printTask("Fim de streaming do recurso " + resource);
                 this.removeResource(resource);
