@@ -10,6 +10,8 @@ public class VideoExtractor {
     private Queue<byte[]> frames;
     private Queue<byte[]> audio;
     private int frameRate;
+    private int width;
+
     private final int segundosAudio = 1;
     private Queue<byte[]> readBytesDirectory(String dir) throws IOException {
         File directory = new File(dir);
@@ -70,8 +72,8 @@ public class VideoExtractor {
     }
     public VideoExtractor(String resource, String file) throws IOException, InterruptedException {
         this.video = resource;
-        String videoFolder = "../Content/video" + resource;
-        String audioFolder = "../Content/audio" + resource;
+        String videoFolder = "Content/video" + resource;
+        String audioFolder = "Content/audio" + resource;
         createDirs(videoFolder,audioFolder);
         Thread t1 = new Thread(() -> { try {extractFrames(videoFolder,file);} catch (IOException | InterruptedException ignored) {}});
         Thread t2 = new Thread(() -> { try {extractAudio(audioFolder,file);} catch (IOException | InterruptedException ignored) {}});
@@ -81,7 +83,7 @@ public class VideoExtractor {
         t2.join();
         clean(videoFolder,audioFolder);
         extractFrameRate(file);
-        Debug.printTask("Video " + resource + " extraido com sucesso. Número de frames=" + this.frames.size() + ". Número de pedaços de audio com 2 segundos " + this.audio.size());
+        Debug.printTask("Video " + resource + " extraido com sucesso. Número de frames=" + this.frames.size() + ". Número de pedaços de audio com " + this.segundosAudio+ " segundos " + this.audio.size());
     }
     public int framesLeft() {return this.frames.size() < this.frameRate ? (this.frames.isEmpty() ? 0 : 1) : this.frames.size() / this.frameRate + 1;}
     public int audioLeft() {return this.audio.size();}
@@ -89,7 +91,7 @@ public class VideoExtractor {
         return this.audio.poll();
     }
 
-    private byte[] nextFrame() {
+    public byte[] nextFrame() {
         return this.frames.poll();
     }
 

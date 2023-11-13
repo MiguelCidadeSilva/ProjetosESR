@@ -81,11 +81,15 @@ public class Player {
         iconLabel.setIcon(icon);
     }
 
-    public void updateAudio(byte[] audio) throws UnsupportedAudioFileException, IOException, LineUnavailableException {
-        InputStream inputStream = new ByteArrayInputStream(audio);
-        AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(inputStream);
-        clip = AudioSystem.getClip();
-        clip.open(audioInputStream);
-        clip.start();
+    public void updateAudio(byte[] audio) {
+        try {
+            InputStream inputStream = new ByteArrayInputStream(audio);
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(inputStream);
+            clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+        } catch (UnsupportedAudioFileException | IOException | LineUnavailableException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

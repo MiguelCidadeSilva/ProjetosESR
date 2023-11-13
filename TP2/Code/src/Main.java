@@ -9,7 +9,6 @@ import javax.sound.sampled.UnsupportedAudioFileException;
 import java.io.*;
 import java.net.DatagramPacket;
 import java.util.Arrays;
-import java.util.List;
 
 public class Main {
     public static HelperContentWriter write() {
@@ -54,15 +53,32 @@ public class Main {
         System.out.println("TCP");
         print(hcr);
     }
-    public static void updateFrame(VideoExtractor ve, Player p) throws InterruptedException, UnsupportedAudioFileException, LineUnavailableException, IOException {
-        List<byte[]> frames = ve.nextFrames();
-        if(ve.hasAudio())
-            p.updateAudio(ve.nextAudio());
-        for(byte[] frame : frames)
+    public static void updateAudio(VideoExtractor ve, Player p) throws  InterruptedException {
+        long time = System.currentTimeMillis();
+        TaskExecutor t = new TaskExecutor();
+        t.start();
+        while(ve.audioLeft() > 1)
         {
-            p.updateFrame(frame);
+            byte[] audio = ve.nextAudio();
+            t.submitTask(() -> p.updateAudio(audio));
+            Thread.sleep(1000);
+        }
+        byte[] audio = ve.nextAudio();
+        t.submitTask(() -> p.updateAudio(audio));
+        System.out.println("Acabou audio " + (System.currentTimeMillis() - time) );
+    }
+    public static void updateFrame(VideoExtractor ve, Player p) throws InterruptedException {
+        long time = System.currentTimeMillis();
+        TaskExecutor t = new TaskExecutor();
+        t.start();
+        while (ve.hasFrames())
+        {
+            byte[] frame = ve.nextFrame();
+            t.submitTask(() -> p.updateFrame(frame));
             Thread.sleep(1000/ve.getFrameRate());
         }
+        System.out.println("Acabou video " + (System.currentTimeMillis() - time) );
+        t.shutdown();
     }
     public static void main(String[] args) throws Exception {
         // HelperContentWriter hcw = write();
@@ -81,8 +97,14 @@ public class Main {
         //System.out.println(compressed.length);
         //System.out.println(decompressed.length);
         Player p = new Player();
-        while (ve.hasFrames())
-            updateFrame(ve,p);
-
+        Thread t = new Thread(() -> {
+            try {
+                updateAudio(ve, p);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        t.start();
+        updateFrame(ve,p);
     }
 }
