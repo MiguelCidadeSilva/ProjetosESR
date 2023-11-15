@@ -72,8 +72,8 @@ public class VideoExtractor {
     }
     public VideoExtractor(String resource, String file) throws IOException, InterruptedException {
         this.video = resource;
-        String videoFolder = "Content/video" + resource;
-        String audioFolder = "Content/audio" + resource;
+        String videoFolder = "../Content/video" + resource;
+        String audioFolder = "../Content/audio" + resource;
         createDirs(videoFolder,audioFolder);
         Thread t1 = new Thread(() -> { try {extractFrames(videoFolder,file);} catch (IOException | InterruptedException ignored) {}});
         Thread t2 = new Thread(() -> { try {extractAudio(audioFolder,file);} catch (IOException | InterruptedException ignored) {}});
@@ -85,7 +85,7 @@ public class VideoExtractor {
         extractFrameRate(file);
         Debug.printTask("Video " + resource + " extraido com sucesso. Número de frames=" + this.frames.size() + ". Número de pedaços de audio com " + this.segundosAudio+ " segundos " + this.audio.size());
     }
-    public int framesLeft() {return this.frames.size() < this.frameRate ? (this.frames.isEmpty() ? 0 : 1) : this.frames.size() / this.frameRate + 1;}
+    public int framesLeft() {return this.frames.size();}
     public int audioLeft() {return this.audio.size();}
     public byte[] nextAudio() {
         return this.audio.poll();

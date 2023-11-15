@@ -69,13 +69,11 @@ public class ProtocolLoadContent{
         makeFlush(dos,flush);
     }
     */
-    public static long encapsulateVideo(VideoExtractor ve,DataOutputStream dos,boolean flush, String destiny) throws IOException {
-        long starttime = System.currentTimeMillis();
-        List<StreamingPacket> frames = ve.nextFrames().stream().map(frame -> new StreamingPacket(ve.getVideo(),Cods.codVideo, frame)).toList();
-        List<HelperContentWriter> hcws = frames.stream().map(frame -> writePacket(frame,destiny,ve.framesLeft())).toList();
-        hcws.forEach(hcw -> HelperProtocols.writeContentTCP(hcw,dos));
+    public static void encapsulateVideo(VideoExtractor ve,DataOutputStream dos,boolean flush, String destiny) throws IOException {
+        StreamingPacket sp = new StreamingPacket(ve.getVideo(), Cods.codVideo,ve.nextFrame());
+        HelperContentWriter hcw = writePacket(sp,destiny,ve.framesLeft());
+        HelperProtocols.writeContentTCP(hcw,dos);
         makeFlush(dos,flush);
-        return System.currentTimeMillis() - starttime;
     }
     public static void encapsulateNoExist(String resource,DataOutputStream dos,boolean flush, String destiny) throws IOException {
         StreamingPacket streamingPacket = new StreamingPacket(resource,Cods.codNoExist,new byte[0]);

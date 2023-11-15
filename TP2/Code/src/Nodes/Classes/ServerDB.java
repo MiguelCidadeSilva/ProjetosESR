@@ -1,6 +1,7 @@
 package Nodes.Classes;
 
 import Nodes.Utils.Debug;
+import Nodes.Utils.TaskExecutor;
 import Nodes.Utils.VideoExtractor;
 import Protocols.Helper.HelperConnection;
 import Protocols.ProtocolBuildTree;
@@ -34,17 +35,39 @@ public class ServerDB {
             throw new RuntimeException(e);
         }
     }
-    private void sendFrames(String resource, DataOutputStream dos, String destiny) throws IOException, InterruptedException {
+    private void sendVideo(VideoExtractor ve, DataOutputStream dos, String destiny) throws InterruptedException {
+        TaskExecutor t = new TaskExecutor();
+        t.start();
+        long sleep = 1000/ve.getFrameRate();
+        while (ve.framesLeft() > 1)
+        {
+            t.submitTask(() -> {try {ProtocolLoadContent.encapsulateVideo(ve,dos,true,destiny);} catch (IOException ignored) {}});
+            Thread.sleep(sleep);
+        }
+        t.shutdown();
+        try {ProtocolLoadContent.encapsulateVideo(ve,dos,true,destiny);} catch (IOException ignored) {};
+    }
+    private void sendAudio(VideoExtractor ve, DataOutputStream dos, String destiny) throws InterruptedException {
+        TaskExecutor t = new TaskExecutor();
+        t.start();
+        while(ve.audioLeft() > 1)
+        {
+            t.submitTask(() -> {try {ProtocolLoadContent.encapsulateAudio(ve,dos,true,destiny);} catch (IOException ignored) {}});
+            Thread.sleep(1000);
+        }
+        t.shutdown();
+        try {ProtocolLoadContent.encapsulateAudio(ve,dos,true,destiny);} catch (IOException ignored) {};
+
+    }
+    private void sendResource(String resource, DataOutputStream dos, String destiny) throws IOException, InterruptedException {
         Debug.printTask("Recurso " + resource + ": A começar streaming, ficheiro: " + content.get(resource));
         VideoExtractor ve = new VideoExtractor(resource,content.get(resource));
-        while(ve.hasFrames())
-        {
-            if(ve.hasAudio())
-                ProtocolLoadContent.encapsulateAudio(ve,dos,true,destiny);
-            long time = ProtocolLoadContent.encapsulateVideo(ve,dos,true,destiny);
-            if(time < 1000)
-                Thread.sleep(1000-time);
-        }
+        Thread taudio = new Thread(() -> {try {sendAudio(ve,dos,destiny);} catch (InterruptedException ignored) {}});
+        Thread tvideo = new Thread(() -> {try {sendVideo(ve,dos,destiny);} catch (InterruptedException ignored) {}});
+        taudio.start();
+        tvideo.start();
+        taudio.join();
+        tvideo.join();
         ProtocolLoadContent.encapsulateEndStream(ve,dos,true,destiny);
         Debug.printTask("Recurso " + resource + ": terminou streaming");
     }
@@ -58,7 +81,7 @@ public class ServerDB {
             if(isRequest)
             {
                 if(content.containsKey(aux[0]))
-                    sendFrames(aux[0],dos,socket.getInetAddress().getHostAddress());
+                    sendResource(aux[0],dos,socket.getInetAddress().getHostAddress());
                 else
                     ProtocolLoadContent.encapsulateNoExist(aux[0],dos,true,socket.getInetAddress().getHostAddress());
             }
