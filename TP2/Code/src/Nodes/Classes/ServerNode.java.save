@@ -285,23 +285,16 @@ public class ServerNode {
     }
     public boolean startStreamingCN(HelperConnection hc) {
         String resource = hc.name();
-	InetAddress ip = hc.address();
-	boolean sucess = false;
- 	Debug.printTask("A adicionar cliente " + ip.getHostAddress() + " para streaming do conteudo " + resource);
- 	if(!this.hasResource(resource))
-        {
-        	this.addResource(resource);
-        	this.addClient(resource,ip);
-       		List<InetAddress> bestneighbours = this.getBestNeighbours(resource);
-        	Debug.printTask("Vizinhos que a contactar :" + bestneighbours.stream().map(InetAddress::getHostAddress).toList());
-        	for(int i = 0; i < bestneighbours.size() && !sucess; i++)
-            	sucess = contactNeighbourStartStreaming(bestneighbours.get(i),resource);
-        }
-	else {
-		this.addClient(resource,ip);
-		sucess = true;
-	}
-	return sucess;
+        InetAddress ip = hc.address();
+        Debug.printTask("A adicionar cliente " + ip.getHostAddress() + " para streaming do conteudo " + resource);
+        this.addResource(resource);
+        this.addClient(resource,ip);
+        List<InetAddress> bestneighbours = this.getBestNeighbours(resource);
+        Debug.printTask("Vizinhos que a contactar :" + bestneighbours.stream().map(InetAddress::getHostAddress).toList());
+        boolean sucess = false;
+        for(int i = 0; i < bestneighbours.size() && !sucess; i++)
+            sucess = contactNeighbourStartStreaming(bestneighbours.get(i),resource);
+        return sucess;
     }
     protected boolean startStreaming(Socket socket) {
         try {
@@ -350,10 +343,10 @@ public class ServerNode {
         }
     }
     private void serverMulticast() {
-	    Debug.printTask("Servidor multicast aberto");
+	Debug.printTask("Servidor multicast aberto");
         try (DatagramSocket socket = new DatagramSocket(Cods.portStreamingContent))
         {
-            byte[] buffer = new byte[Cods.packetSize+10000];
+            byte[] buffer = new byte[50000];
             while (true) {
                 DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
                 socket.receive(receivePacket);

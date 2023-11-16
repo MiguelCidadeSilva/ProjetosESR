@@ -83,7 +83,7 @@ public class Client {
         Debug.printTask("Criação do socket UDP");
         try (DatagramSocket socket = new DatagramSocket(Cods.portStreamingContent))
         {
-            byte[] buffer = new byte[Cods.packetSize];
+            byte[] buffer = new byte[Cods.packetSize+10000];
             Debug.printTask("Receção de pacotes UDP.");
 	        boolean streaming = true;
             while (streaming) {

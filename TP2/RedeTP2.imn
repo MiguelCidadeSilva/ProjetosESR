@@ -10,8 +10,8 @@ node n1 {
 	!
     }
     canvas c1
-    iconcoords {171.0 33.0}
-    labelcoords {171.0 65.0}
+    iconcoords {173.0 35.0}
+    labelcoords {173.0 67.0}
     interface-peer {eth0 n21}
     services {DefaultRoute SSH UserDefined}
     custom-config {
@@ -72,8 +72,8 @@ node n3 {
 	!
     }
     canvas c1
-    iconcoords {232.0 206.0}
-    labelcoords {232.0 238.0}
+    iconcoords {235.0 206.0}
+    labelcoords {235.0 238.0}
     interface-peer {eth1 n17}
     interface-peer {eth2 n15}
     interface-peer {eth3 n21}
@@ -116,8 +116,8 @@ node n4 {
 	!
     }
     canvas c1
-    iconcoords {494.0 342.0}
-    labelcoords {493.0 376.0}
+    iconcoords {501.0 347.0}
+    labelcoords {500.0 381.0}
     interface-peer {eth1 n5}
     interface-peer {eth4 n18}
     interface-peer {eth5 n26}
@@ -157,8 +157,8 @@ node n5 {
 	!
     }
     canvas c1
-    iconcoords {752.0 242.0}
-    labelcoords {752.0 274.0}
+    iconcoords {754.0 245.0}
+    labelcoords {754.0 277.0}
     interface-peer {eth0 n4}
     interface-peer {eth1 n16}
     interface-peer {eth2 n19}
@@ -213,6 +213,14 @@ node n7 {
     iconcoords {52.0 136.0}
     labelcoords {52.0 168.0}
     interface-peer {eth0 n21}
+    custom-config {
+	custom-config-id service:UserDefined
+	custom-command UserDefined
+	config {
+	cmdup=('cp -r /home/core/ProjetosESR/TP2/Code .', )
+	}
+    }
+    services {DefaultRoute UserDefined}
 }
 
 node n8 {
@@ -227,9 +235,17 @@ node n8 {
 	!
     }
     canvas c1
-    iconcoords {51.0 219.0}
-    labelcoords {59.0 264.0}
+    iconcoords {52.0 221.0}
+    labelcoords {60.0 266.0}
     interface-peer {eth0 n20}
+    custom-config {
+	custom-config-id service:UserDefined
+	custom-command UserDefined
+	config {
+	cmdup=('cp -r /home/core/ProjetosESR/TP2/Code .', )
+	}
+    }
+    services {DefaultRoute UserDefined}
 }
 
 node n9 {
@@ -247,6 +263,14 @@ node n9 {
     iconcoords {42.0 436.0}
     labelcoords {42.0 468.0}
     interface-peer {eth0 n20}
+    custom-config {
+	custom-config-id service:UserDefined
+	custom-command UserDefined
+	config {
+	cmdup=('cp -r /home/core/ProjetosESR/TP2/Code .', )
+	}
+    }
+    services {DefaultRoute UserDefined}
 }
 
 node n10 {
@@ -264,6 +288,14 @@ node n10 {
     iconcoords {326.0 556.0}
     labelcoords {326.0 588.0}
     interface-peer {eth0 n24}
+    custom-config {
+	custom-config-id service:UserDefined
+	custom-command UserDefined
+	config {
+	cmdup=('cp -r /home/core/ProjetosESR/TP2/Code .', )
+	}
+    }
+    services {DefaultRoute UserDefined}
 }
 
 node n11 {
@@ -281,6 +313,14 @@ node n11 {
     iconcoords {736.0 502.0}
     labelcoords {736.0 534.0}
     interface-peer {eth0 n22}
+    custom-config {
+	custom-config-id service:UserDefined
+	custom-command UserDefined
+	config {
+	cmdup=('cp -r /home/core/ProjetosESR/TP2/Code .', )
+	}
+    }
+    services {DefaultRoute UserDefined}
 }
 
 node n12 {
@@ -295,9 +335,17 @@ node n12 {
 	!
     }
     canvas c1
-    iconcoords {918.0 435.0}
-    labelcoords {918.0 467.0}
+    iconcoords {923.0 479.0}
+    labelcoords {923.0 511.0}
     interface-peer {eth0 n22}
+    custom-config {
+	custom-config-id service:UserDefined
+	custom-command UserDefined
+	config {
+	cmdup=('cp -r /home/core/ProjetosESR/TP2/Code .', )
+	}
+    }
+    services {DefaultRoute UserDefined}
 }
 
 node n13 {
@@ -315,6 +363,14 @@ node n13 {
     iconcoords {946.0 245.0}
     labelcoords {948.0 286.0}
     interface-peer {eth0 n19}
+    custom-config {
+	custom-config-id service:UserDefined
+	custom-command UserDefined
+	config {
+	cmdup=('cp -r /home/core/ProjetosESR/TP2/Code .', )
+	}
+    }
+    services {DefaultRoute UserDefined}
 }
 
 node n14 {
@@ -332,6 +388,14 @@ node n14 {
     iconcoords {862.0 38.0}
     labelcoords {862.0 70.0}
     interface-peer {eth0 n19}
+    custom-config {
+	custom-config-id service:UserDefined
+	custom-command UserDefined
+	config {
+	cmdup=('cp -r /home/core/ProjetosESR/TP2/Code .', )
+	}
+    }
+    services {DefaultRoute UserDefined}
 }
 
 node n15 {
@@ -354,8 +418,8 @@ node n15 {
 	!
     }
     canvas c1
-    iconcoords {147.0 333.0}
-    labelcoords {150.0 357.0}
+    iconcoords {150.0 335.0}
+    labelcoords {153.0 359.0}
     interface-peer {eth0 n3}
     interface-peer {eth2 n20}
     interface-peer {eth1 n26}
@@ -393,8 +457,8 @@ node n16 {
 	!
     }
     canvas c1
-    iconcoords {719.0 380.0}
-    labelcoords {719.0 412.0}
+    iconcoords {721.0 383.0}
+    labelcoords {721.0 415.0}
     interface-peer {eth0 n5}
     interface-peer {eth1 n18}
     interface-peer {eth2 n22}
@@ -468,8 +532,8 @@ node n18 {
 	!
     }
     canvas c1
-    iconcoords {473.0 482.0}
-    labelcoords {473.0 514.0}
+    iconcoords {479.0 485.0}
+    labelcoords {479.0 517.0}
     interface-peer {eth0 n16}
     interface-peer {eth1 n4}
     interface-peer {eth2 n24}
@@ -619,8 +683,8 @@ node n27 {
 	!
     }
     canvas c1
-    iconcoords {372.0 259.0}
-    labelcoords {372.0 291.0}
+    iconcoords {375.0 261.0}
+    labelcoords {375.0 293.0}
     interface-peer {eth0 n26}
     interface-peer {eth1 n25}
     interface-peer {eth2 n3}
