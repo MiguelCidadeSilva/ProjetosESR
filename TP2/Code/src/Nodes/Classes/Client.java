@@ -94,6 +94,8 @@ public class Client {
                 b.receive(packet);
                 streaming = packet.getType() != Cods.codEndStream;
 	        }
+            Debug.printTask("Fim de streaming");
+            System.exit(0);
         }
         catch (IOException e) {
             throw new RuntimeException(e);

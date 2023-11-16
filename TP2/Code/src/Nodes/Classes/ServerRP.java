@@ -44,7 +44,7 @@ public class ServerRP extends ServerNode{
                 while(packet.getType() != Cods.codEndStream) {
                     Debug.printStramingPacket(packet);
                     packet = ProtocolLoadContent.decapsulateContent(dis);
-		    multicast(packet);
+		            multicast(packet);
                 }
                 Debug.printTask("Fim de streaming do recurso " + resource);
                 this.removeResource(resource);
@@ -62,9 +62,9 @@ public class ServerRP extends ServerNode{
     public boolean addResourceRP(String resource, InetAddress client, boolean teste) {
         if(!this.hasResource(resource))
         {
-	    this.addResource(resource);
-	    if(!teste)
- 	    	this.addClient(resource,client);
+            this.addResource(resource);
+            if(!teste)
+                this.addClient(resource,client);
             Debug.printTask("A organizar os servidores a contactar");
             List<InetAddress> dbServers = this.getBestNeighbours(resource);
             if(dbServers == null)
@@ -79,7 +79,7 @@ public class ServerRP extends ServerNode{
         }
         else
         {
-	    Debug.printTask("RP contém o conteudo. Não vai fazer pedido ao servidor DB");
+	        Debug.printTask("RP contém o conteudo. Não vai fazer pedido ao servidor DB");
             this.addClient(resource,client);
         }
         return true;

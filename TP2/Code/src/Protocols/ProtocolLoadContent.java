@@ -16,8 +16,10 @@ import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class ProtocolLoadContent{
+    private static ReentrantLock lock = new ReentrantLock();
     private static final byte request = 0;
     private static final byte connection = 1;
     private static void makeFlush(DataOutputStream dos, boolean flush) throws IOException {
@@ -57,14 +59,12 @@ public class ProtocolLoadContent{
             packetsNumber--;
         }
         List<HelperContentWriter> hcws = packets.stream().map(p -> writePacket(p,destiny,codigo == Cods.codAudio ? ve.audioLeft() : ve.framesLeft())).toList();
+        lock.lock();
         hcws.forEach(hcw -> {
             HelperProtocols.writeContentTCP(hcw,dos);
-            try {
-                makeFlush(dos,flush);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+            try {makeFlush(dos,flush); } catch (IOException ignored) {}
         });
+        lock.unlock();
     }
     public static void encapsulateAudio(VideoExtractor ve, DataOutputStream dos, boolean flush, String destiny, int sequenceNumber) throws IOException {
         byte[] audio = ve.nextAudio();

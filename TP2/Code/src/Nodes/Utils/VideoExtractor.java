@@ -10,7 +10,6 @@ public class VideoExtractor {
     private Queue<byte[]> frames;
     private Queue<byte[]> audio;
     private int frameRate;
-    private int width;
 
     private final int segundosAudio = 1;
     private Queue<byte[]> readBytesDirectory(String dir) throws IOException {

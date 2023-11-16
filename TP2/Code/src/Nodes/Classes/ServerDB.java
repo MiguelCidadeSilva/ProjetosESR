@@ -60,12 +60,7 @@ public class ServerDB {
             int ss = 1;
             while (ve.audioLeft() > 1) {
                 int finalSs = ss;
-                t.submitTask(() -> {
-                    try {
-                        ProtocolLoadContent.encapsulateAudio(ve, dos, true, destiny, finalSs);
-                    } catch (IOException ignored) {
-                    }
-                });
+                t.submitTask(() -> {try {ProtocolLoadContent.encapsulateAudio(ve, dos, true, destiny, finalSs);} catch (IOException ignored) {}});
                 ss++;
                 Thread.sleep(1000);
             }

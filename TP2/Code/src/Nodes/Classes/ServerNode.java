@@ -132,25 +132,18 @@ public class ServerNode {
 
     public void multicast(StreamingPacket packet) throws IOException {
         List<InetAddress> clients = getClientList(packet);
-        Debug.printTask("A fazer multicast do recurso " + packet.getResource() + " para os clientes: " + clients.stream().map(InetAddress::getHostAddress).toList());
-        Debug.printTask("A encapsular o pacote");
         DatagramPacket dp = ProtocolTransferContent.encapsulate(packet);
-        Debug.printTask("Pacote encapsulado, DatagramPacket resultante: "+packet);
+        Debug.printTask("A fazer multicast do recurso " + packet.getResource() + ", com o pacote "+packet+" para os clientes: " + clients.stream().map(InetAddress::getHostAddress).toList());
         for (InetAddress client : clients) {
-            Debug.printTask("Criação de socket...");
-            DatagramSocket ds = new DatagramSocket(); // Cods.portStreamingContent,client);
-            Debug.printTask("Socket UDP criado, a clonar datagrama");
+            DatagramSocket ds = new DatagramSocket();
             DatagramPacket clonedPacket = new DatagramPacket(
                 Arrays.copyOf(dp.getData(), dp.getLength()),
                 dp.getLength(),
                 client,
                 Cods.portStreamingContent
             );
-            Debug.printTask("Envio do datagrama clonado");
             ds.send(clonedPacket);
-            Debug.printTask("Datagrama enviado.");
             ds.close();
-            Debug.printTask("Socket fechado.");
         }
         if(packet.getType() == Cods.codEndStream)
         {
