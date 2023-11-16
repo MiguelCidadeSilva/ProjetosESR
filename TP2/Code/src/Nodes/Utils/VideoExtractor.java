@@ -118,4 +118,27 @@ public class VideoExtractor {
             nextFrames.add(nextFrame());
         return nextFrames;
     }
+
+    public static List<byte[]> splitByteArray(byte[] data, int chunkSize) {
+        List<byte[]> chunks = new ArrayList<>();
+        for (int i = 0; i < data.length; i += chunkSize) {
+            int remainingBytes = Math.min(chunkSize, data.length - i);
+            byte[] chunk = new byte[remainingBytes];
+            System.arraycopy(data, i, chunk, 0, remainingBytes);
+            chunks.add(chunk);
+        }
+        return chunks;
+    }
+    public static byte[] concatenateChunks(List<byte[]> chunks) {
+        int totalLength = chunks.stream().mapToInt(chunk -> chunk.length).sum();
+        byte[] result = new byte[totalLength];
+
+        int position = 0;
+        for (byte[] chunk : chunks) {
+            System.arraycopy(chunk, 0, result, position, chunk.length);
+            position += chunk.length;
+        }
+
+        return result;
+    }
 }

@@ -36,28 +36,42 @@ public class ServerDB {
         }
     }
     private void sendVideo(VideoExtractor ve, DataOutputStream dos, String destiny) throws InterruptedException {
-        TaskExecutor t = new TaskExecutor();
-        t.start();
-        long sleep = 1000/ve.getFrameRate();
-        while (ve.framesLeft() > 1)
+        if(ve.hasFrames())
         {
-            t.submitTask(() -> {try {ProtocolLoadContent.encapsulateVideo(ve,dos,true,destiny);} catch (IOException ignored) {}});
-            Thread.sleep(sleep);
+            TaskExecutor t = new TaskExecutor();
+            t.start();
+            int ss = 1;
+            long sleep = 1000/ve.getFrameRate();
+            while (ve.framesLeft() > 1)
+            {
+                int finalSs = ss;
+                t.submitTask(() -> {try {ProtocolLoadContent.encapsulateVideo(ve,dos,true,destiny, finalSs);} catch (IOException ignored) {}});
+                ss++;
+                Thread.sleep(sleep);
+            }
+            t.shutdown();
+            try {ProtocolLoadContent.encapsulateVideo(ve,dos,true,destiny,ss);} catch (IOException ignored) {};
         }
-        t.shutdown();
-        try {ProtocolLoadContent.encapsulateVideo(ve,dos,true,destiny);} catch (IOException ignored) {};
     }
     private void sendAudio(VideoExtractor ve, DataOutputStream dos, String destiny) throws InterruptedException {
-        TaskExecutor t = new TaskExecutor();
-        t.start();
-        while(ve.audioLeft() > 1)
-        {
-            t.submitTask(() -> {try {ProtocolLoadContent.encapsulateAudio(ve,dos,true,destiny);} catch (IOException ignored) {}});
-            Thread.sleep(1000);
+        if (ve.hasAudio()) {
+            TaskExecutor t = new TaskExecutor();
+            t.start();
+            int ss = 1;
+            while (ve.audioLeft() > 1) {
+                int finalSs = ss;
+                t.submitTask(() -> {
+                    try {
+                        ProtocolLoadContent.encapsulateAudio(ve, dos, true, destiny, finalSs);
+                    } catch (IOException ignored) {
+                    }
+                });
+                ss++;
+                Thread.sleep(1000);
+            }
+            t.shutdown();
+            try {ProtocolLoadContent.encapsulateAudio(ve, dos, true, destiny, ss);} catch (IOException ignored) {};
         }
-        t.shutdown();
-        try {ProtocolLoadContent.encapsulateAudio(ve,dos,true,destiny);} catch (IOException ignored) {};
-
     }
     private void sendResource(String resource, DataOutputStream dos, String destiny) throws IOException, InterruptedException {
         Debug.printTask("Recurso " + resource + ": A começar streaming, ficheiro: " + content.get(resource));
@@ -68,7 +82,7 @@ public class ServerDB {
         tvideo.start();
         taudio.join();
         tvideo.join();
-        ProtocolLoadContent.encapsulateEndStream(ve,dos,true,destiny);
+        ProtocolLoadContent.encapsulateEndStream(ve,dos,true,destiny,1);
         Debug.printTask("Recurso " + resource + ": terminou streaming");
     }
     public void repondeRP(Socket socket) {

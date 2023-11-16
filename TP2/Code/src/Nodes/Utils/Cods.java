@@ -12,4 +12,6 @@ public class Cods {
     public static final int codVideo = 1;
     public static final int codEndStream = 2;
     public static final int codNoExist = 3;
+
+    public static final int packetSize = 20000;
 }

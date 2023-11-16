@@ -1,18 +1,40 @@
 package Nodes.Classes;
 
 import Nodes.Utils.Cods;
+import Protocols.Helper.HelperContentReader;
+import Protocols.Helper.HelperContentWriter;
 
-import java.util.Arrays;
+import java.util.List;
 
 public class StreamingPacket {
-    private String resource;
-    private int type;
-    private byte[] content;
+    private final String resource;
+    private final int type;
+    private final byte[] content;
+    private final int sequenceNumber;
+    private final int nrPackets;
 
-    public StreamingPacket(String resource, int type, byte[] content) {
+    public StreamingPacket(String resource, int type, byte[] content, int sequenceNumber, int nrPackets) {
         this.resource = resource;
         this.type = type;
         this.content = content;
+        this.sequenceNumber = sequenceNumber;
+        this.nrPackets = nrPackets;
+    }
+    public StreamingPacket(HelperContentReader hcr) {
+        this.resource = hcr.readStr();
+        this.type = hcr.readInt();
+        this.sequenceNumber = hcr.readInt();
+        this.nrPackets = hcr.readInt();
+        this.content = hcr.readBytes();
+    }
+    public HelperContentWriter writer() {
+        HelperContentWriter hcw = new HelperContentWriter(HelperContentWriter.calculateCapacity(3, List.of(this.getResource()),List.of(this.getContent()),null));
+        hcw.writeStr(this.getResource());
+        hcw.writeInt(this.getType());
+        hcw.writeInt(this.getSequenceNumber());
+        hcw.writeInt(this.getNrPackets());
+        hcw.writeBytes(this.getContent());
+        return hcw;
     }
 
     public String getResource() {
@@ -31,6 +53,14 @@ public class StreamingPacket {
     }
     @Override
     public String toString() {
-        return "(" + this.resource + ","  + this.getTask() + "," + this.getContent().length + " bytes)";
+        return "(" + this.resource + ","  + this.getTask()  + "," + this.getSequenceNumber() + "," + this.getNrPackets() + "," + this.getContent().length + " bytes)";
+    }
+
+    public int getSequenceNumber() {
+        return sequenceNumber;
+    }
+
+    public int getNrPackets() {
+        return nrPackets;
     }
 }

@@ -346,7 +346,7 @@ public class ServerNode {
 	    Debug.printTask("Servidor multicast aberto");
         try (DatagramSocket socket = new DatagramSocket(Cods.portStreamingContent))
         {
-            byte[] buffer = new byte[50000];
+            byte[] buffer = new byte[Cods.packetSize];
             while (true) {
                 DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
                 socket.receive(receivePacket);

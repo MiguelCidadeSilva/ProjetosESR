@@ -78,19 +78,22 @@ public class Client {
     }
 
     private void getContent(){
+        Player p = new Player();
+        Buffer b = new Buffer(p);
         Debug.printTask("Criação do socket UDP");
         try (DatagramSocket socket = new DatagramSocket(Cods.portStreamingContent))
         {
-            byte[] buffer = new byte[50000];
+            byte[] buffer = new byte[Cods.packetSize];
             Debug.printTask("Receção de pacotes UDP.");
-	    boolean streaming = true;
+	        boolean streaming = true;
             while (streaming) {
                 DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
                 socket.receive(receivePacket);
                 StreamingPacket packet = ProtocolTransferContent.decapsulate(receivePacket);
-                Debug.printTask("Pacote de streaming recebido" + packet.toString());
-            	streaming = packet.getType() != Cods.codEndStream;
-	    }
+                Debug.printTask("Pacote de streaming recebido" + packet);
+                b.receive(packet);
+                streaming = packet.getType() != Cods.codEndStream;
+	        }
         }
         catch (IOException e) {
             throw new RuntimeException(e);

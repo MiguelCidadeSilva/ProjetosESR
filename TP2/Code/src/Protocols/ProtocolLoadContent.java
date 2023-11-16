@@ -14,6 +14,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProtocolLoadContent{
@@ -35,48 +36,46 @@ public class ProtocolLoadContent{
     }
 
     private static HelperContentWriter writePacket(StreamingPacket streamingPacket, String destiny, int number) {
-        int capacity = HelperContentWriter.calculateCapacity(1, List.of(streamingPacket.getResource()),List.of(streamingPacket.getContent()),null);
-
         LocalTime currentTime = LocalTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
         String formattedTime = currentTime.format(formatter);
         Debug.printTask(formattedTime + " | Encapsular pacote " + streamingPacket + " para o destino: " + destiny + ". Restam " + number + " pacotes de " + streamingPacket.getTask());
-        HelperContentWriter hcw = new HelperContentWriter(capacity);
-        hcw.writeStr(streamingPacket.getResource());
-        hcw.writeInt(streamingPacket.getType());
-        hcw.writeBytes(streamingPacket.getContent());
-        return hcw;
+        return streamingPacket.writer();
     }
-    public static void encapsulateEndStream(VideoExtractor ve, DataOutputStream dos,boolean flush, String destiny) throws IOException {
-        StreamingPacket streamingPacket = new StreamingPacket(ve.getVideo(), Cods.codEndStream,new byte[1]);
+    public static void encapsulateEndStream(VideoExtractor ve, DataOutputStream dos,boolean flush, String destiny, int sequenceNumber) throws IOException {
+        StreamingPacket streamingPacket = new StreamingPacket(ve.getVideo(), Cods.codEndStream,new byte[1],sequenceNumber,0);
         HelperContentWriter hcw = writePacket(streamingPacket,destiny, ve.framesLeft());
         HelperProtocols.writeContentTCP(hcw,dos);
         makeFlush(dos,flush);
     }
-    public static void encapsulateAudio(VideoExtractor ve, DataOutputStream dos, boolean flush, String destiny) throws IOException {
+    private static void encapsulateByteArray(byte[] data, int sequenceNumber, VideoExtractor ve, DataOutputStream dos, String destiny, boolean flush, int codigo) throws IOException {
+        List<byte[]> split = VideoExtractor.splitByteArray(data,Cods.packetSize);
+        List<StreamingPacket> packets = new ArrayList<>(split.size());
+        int packetsNumber = split.size();
+        for(byte[] datasplit : split) {
+            packets.add(new StreamingPacket(ve.getVideo(),codigo,datasplit,sequenceNumber,packetsNumber));
+            packetsNumber--;
+        }
+        List<HelperContentWriter> hcws = packets.stream().map(p -> writePacket(p,destiny,codigo == Cods.codAudio ? ve.audioLeft() : ve.framesLeft())).toList();
+        hcws.forEach(hcw -> {
+            HelperProtocols.writeContentTCP(hcw,dos);
+            try {
+                makeFlush(dos,flush);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        });
+    }
+    public static void encapsulateAudio(VideoExtractor ve, DataOutputStream dos, boolean flush, String destiny, int sequenceNumber) throws IOException {
         byte[] audio = ve.nextAudio();
-        StreamingPacket streamingPacket = new StreamingPacket(ve.getVideo(),Cods.codAudio,audio);
-        HelperContentWriter hcw = writePacket(streamingPacket,destiny, ve.audioLeft());
-        HelperProtocols.writeContentTCP(hcw,dos);
-        makeFlush(dos,flush);
+        encapsulateByteArray(audio,sequenceNumber,ve,dos,destiny,flush,Cods.codAudio);
     }
-    /*
-    public static void encapsulateVideo(VideoExtractor ve,DataOutputStream dos,boolean flush, String destiny) throws IOException {
-        List<byte[]> frames = ve.nextFrames();
-        StreamingPacket streamingPacket = new StreamingPacket(ve.getVideo(),Cods.codVideo, FramesAux.encapsulateFrames(frames));
-        HelperContentWriter hcw = writePacket(streamingPacket,"video",destiny,ve.framesLeft());
-        HelperProtocols.writeContentTCP(hcw,dos);
-        makeFlush(dos,flush);
-    }
-    */
-    public static void encapsulateVideo(VideoExtractor ve,DataOutputStream dos,boolean flush, String destiny) throws IOException {
-        StreamingPacket sp = new StreamingPacket(ve.getVideo(), Cods.codVideo,ve.nextFrame());
-        HelperContentWriter hcw = writePacket(sp,destiny,ve.framesLeft());
-        HelperProtocols.writeContentTCP(hcw,dos);
-        makeFlush(dos,flush);
+    public static void encapsulateVideo(VideoExtractor ve,DataOutputStream dos,boolean flush, String destiny, int sequenceNumber) throws IOException {
+        byte[] video = ve.nextFrame();
+        encapsulateByteArray(video,sequenceNumber,ve,dos,destiny,flush,Cods.codVideo);
     }
     public static void encapsulateNoExist(String resource,DataOutputStream dos,boolean flush, String destiny) throws IOException {
-        StreamingPacket streamingPacket = new StreamingPacket(resource,Cods.codNoExist,new byte[0]);
+        StreamingPacket streamingPacket = new StreamingPacket(resource,Cods.codNoExist,new byte[1],1,0);
         HelperContentWriter hcw = writePacket(streamingPacket,destiny, 0);
         HelperProtocols.writeContentTCP(hcw,dos);
         makeFlush(dos,flush);
@@ -84,10 +83,7 @@ public class ProtocolLoadContent{
     public static StreamingPacket decapsulateContent(DataInputStream dis) throws IOException {
         Debug.printTask("À espera de pacotes de streaming");
         HelperContentReader hcr = HelperProtocols.readContentTCP(dis);
-        String resource = hcr.readStr();
-        int codigo = hcr.readInt();
-        byte[] array = hcr.readBytes();
-        return new StreamingPacket(resource,codigo,array);
+        return new StreamingPacket(hcr);
     }
 
     public static void encapsulateConnection(DataOutputStream dos, boolean flush, String destiny) throws IOException {

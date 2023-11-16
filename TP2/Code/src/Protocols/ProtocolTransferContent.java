@@ -12,17 +12,10 @@ public class ProtocolTransferContent {
 
     public static StreamingPacket decapsulate(DatagramPacket packet) {
         HelperContentReader hcr = HelperProtocols.readContentUDP(packet);
-        String resource = hcr.readStr();
-        int type = hcr.readInt();
-        byte[] content = hcr.readBytes();
-        return new StreamingPacket(resource,type,content);
+        return new StreamingPacket(hcr);
     }
 
     public static DatagramPacket encapsulate(StreamingPacket packet){
-        HelperContentWriter hcw = new HelperContentWriter(HelperContentWriter.calculateCapacity(1, List.of(packet.getResource()),List.of(packet.getContent()),null));
-        hcw.writeStr(packet.getResource());
-        hcw.writeInt(packet.getType());
-        hcw.writeBytes(packet.getContent());
-        return HelperProtocols.writeContentUDP(hcw);
+        return HelperProtocols.writeContentUDP(packet.writer());
     }
 }
