@@ -45,8 +45,9 @@ public class ProtocolLoadContent{
         return streamingPacket.writer();
     }
     public static void encapsulateEndStream(VideoExtractor ve, DataOutputStream dos,boolean flush, String destiny, int sequenceNumber) throws IOException, InterruptedException{
+        Debug.printTask("A terminar streaming daqui a 1 segundo");
         Thread.sleep(1000);
-	StreamingPacket streamingPacket = new StreamingPacket(ve.getVideo(), Cods.codEndStream,new byte[1],sequenceNumber,0);
+	    StreamingPacket streamingPacket = new StreamingPacket(ve.getVideo(), Cods.codEndStream,new byte[1],sequenceNumber,0);
         HelperContentWriter hcw = writePacket(streamingPacket,destiny, ve.framesLeft());
         HelperProtocols.writeContentTCP(hcw,dos);
         makeFlush(dos,flush);
