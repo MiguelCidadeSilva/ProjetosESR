@@ -47,9 +47,9 @@ public class Buffer {
         int lastExpected = expected.get(sequenceNumber);
 
         if (lastExpected == sp.getNrPackets()) {
-            while (!receivedPackets.get(sequenceNumber).contains(lastExpected)) {
-                lastExpected--;
-            }
+            do {
+          	lastExpected--;
+	    } while (lastExpected > 0 && receivedPackets.get(sequenceNumber).contains(lastExpected));
             expected.put(sequenceNumber, lastExpected);
 
             if (lastExpected == 0) {
