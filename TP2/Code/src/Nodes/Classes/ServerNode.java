@@ -129,33 +129,27 @@ public class ServerNode {
  	    lock.readLock().unlock();
         return clients;
     }
-    private void multicast(DatagramPacket receivePacket) {
-        StreamingPacket packet = this.receiveResources(receivePacket);
-        multicast(packet);
-    }
-    public void multicast(StreamingPacket packet){
-        try {
-            List<InetAddress> clients = getClientList(packet);
-            DatagramPacket dp = ProtocolTransferContent.encapsulate(packet);
-            Debug.printTask("A fazer multicast do recurso " + packet.getResource() + ", com o pacote "+packet+" para os clientes: " + clients.stream().map(InetAddress::getHostAddress).toList());
-            for (InetAddress client : clients) {
-                DatagramSocket ds = new DatagramSocket();
-                DatagramPacket clonedPacket = new DatagramPacket(
-                        Arrays.copyOf(dp.getData(), dp.getLength()),
-                        dp.getLength(),
-                        client,
-                        Cods.portStreamingContent
-                );
-                ds.send(clonedPacket);
-                ds.close();
-            }
-            if(packet.getType() == Cods.codEndStream)
-            {
-                Debug.printTask("Pacote de fim de streaming a apagar recurso daqui a 1 segundo");
-                Thread.sleep(1000);
-                this.removeResource(packet.getResource());
-            }
-        } catch (IOException | InterruptedException ignored) {}
+
+    public void multicast(StreamingPacket packet) throws IOException {
+        List<InetAddress> clients = getClientList(packet);
+        DatagramPacket dp = ProtocolTransferContent.encapsulate(packet);
+        Debug.printTask("A fazer multicast do recurso " + packet.getResource() + ", com o pacote "+packet+" para os clientes: " + clients.stream().map(InetAddress::getHostAddress).toList());
+        for (InetAddress client : clients) {
+            DatagramSocket ds = new DatagramSocket();
+            DatagramPacket clonedPacket = new DatagramPacket(
+                Arrays.copyOf(dp.getData(), dp.getLength()),
+                dp.getLength(),
+                client,
+                Cods.portStreamingContent
+            );
+            ds.send(clonedPacket);
+            ds.close();
+        }
+        if(packet.getType() == Cods.codEndStream)
+        {
+            Debug.printTask("Pacote de fim de streaming a apagar recurso");
+            this.removeResource(packet.getResource());
+        }
     }
 
     public void sendRequest(InetAddress neighbour, String resource, InetAddress origin, int tid,Map<Integer,Long> responseTime) {
@@ -284,10 +278,10 @@ public class ServerNode {
     }
     public boolean startStreamingCN(HelperConnection hc) {
         String resource = hc.name();
-        InetAddress ip = hc.address();
-        boolean sucess = false;
-        Debug.printTask("A adicionar cliente " + ip.getHostAddress() + " para streaming do conteudo " + resource);
-        if(!this.hasResource(resource))
+	InetAddress ip = hc.address();
+	boolean sucess = false;
+ 	Debug.printTask("A adicionar cliente " + ip.getHostAddress() + " para streaming do conteudo " + resource);
+ 	if(!this.hasResource(resource))
         {
         	this.addResource(resource);
         	this.addClient(resource,ip);
@@ -296,11 +290,11 @@ public class ServerNode {
         	for(int i = 0; i < bestneighbours.size() && !sucess; i++)
             	sucess = contactNeighbourStartStreaming(bestneighbours.get(i),resource);
         }
-        else {
-            this.addClient(resource,ip);
-		    sucess = true;
-	    }
-	    return sucess;
+	else {
+		this.addClient(resource,ip);
+		sucess = true;
+	}
+	return sucess;
     }
     protected boolean startStreaming(Socket socket) {
         try {
@@ -356,8 +350,8 @@ public class ServerNode {
             while (true) {
                 DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
                 socket.receive(receivePacket);
-                Thread t1 = new Thread(() ->this.multicast(receivePacket));
-                t1.start();
+                StreamingPacket packet = this.receiveResources(receivePacket);
+                this.multicast(packet);
             }
         }
         catch (IOException e) {
