@@ -44,9 +44,8 @@ public class ProtocolLoadContent{
         Debug.printTask(formattedTime + " | Encapsular pacote " + streamingPacket + " para o destino: " + destiny + ". Restam " + number + " pacotes de " + streamingPacket.getTask());
         return streamingPacket.writer();
     }
-    public static void encapsulateEndStream(VideoExtractor ve, DataOutputStream dos,boolean flush, String destiny, int sequenceNumber) throws IOException, InterruptedException{
-        Thread.sleep(1000);
-	StreamingPacket streamingPacket = new StreamingPacket(ve.getVideo(), Cods.codEndStream,new byte[1],sequenceNumber,0);
+    public static void encapsulateEndStream(VideoExtractor ve, DataOutputStream dos,boolean flush, String destiny, int sequenceNumber) throws IOException {
+        StreamingPacket streamingPacket = new StreamingPacket(ve.getVideo(), Cods.codEndStream,new byte[1],sequenceNumber,0);
         HelperContentWriter hcw = writePacket(streamingPacket,destiny, ve.framesLeft());
         HelperProtocols.writeContentTCP(hcw,dos);
         makeFlush(dos,flush);
