@@ -29,7 +29,7 @@ public class OrganizeIps {
         }
         Map<String,Long> differenceTimes = new HashMap<>();
         times.forEach((ip,array) -> differenceTimes.put(ip,array[1]-array[0]));
-        return ips.stream().sorted((s1,s2) -> Math.toIntExact(differenceTimes.get(s2.getHostAddress()) - differenceTimes.get(s1.getHostAddress()))).toList();
+        return ips.stream().sorted((s1,s2) -> differenceTimes.get(s2.getHostAddress()) - differenceTimes.get(s1.getHostAddress()) > 0 ? 1 : -1).toList();
     }
 
     private static Thread getThread(String ip, Map<String, Long[]> times) {
@@ -44,7 +44,8 @@ public class OrganizeIps {
                 times.get(ip)[1] = System.currentTimeMillis();
                 socket.close();
             } catch (IOException e) {
-                throw new RuntimeException(e);
+               System.out.println("Erro ao establecer ligação com o vizinho " + ip);
+               times.get(ip)[1] = Long.MAX_VALUE;
             }
         });
     }

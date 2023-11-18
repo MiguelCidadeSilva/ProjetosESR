@@ -153,9 +153,9 @@ public class ServerNode {
     }
 
     public void sendRequest(InetAddress neighbour, String resource, InetAddress origin, int tid,Map<Integer,Long> responseTime) {
+        String ip = neighbour.getHostAddress();
         try {
-            String ip = neighbour.getHostAddress();
-            Debug.printTask("A perguntar " + ip + " se tem o recurso " + resource);
+	    Debug.printTask("A perguntar " + ip + " se tem o recurso " + resource);
             Long startTime = System.currentTimeMillis();
             Socket socket = new Socket(neighbour, Cods.portSOConnections);
             DataInputStream dis = new DataInputStream(socket.getInputStream());
@@ -176,7 +176,7 @@ public class ServerNode {
                 Debug.printTask("Vizinho " + ip + " não encontrou o recurso.");
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            Debug.printError("ao estabelecer ligacao com o vizinho " + ip );
         }
     }
     public byte receiveRequest(HelperConnection hc) throws InterruptedException {
