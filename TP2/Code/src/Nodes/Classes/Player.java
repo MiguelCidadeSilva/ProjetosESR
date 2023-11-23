@@ -2,10 +2,7 @@ package Nodes.Classes;
 import javax.sound.sampled.*;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
+import java.awt.event.*;
 import java.io.*;
 
 public class Player {
@@ -36,6 +33,7 @@ public class Player {
         playButton.addActionListener(new playButtonListener());
         tearButton.addActionListener(new tearButtonListener());
         pauseButton.addActionListener(new pauseButtonListener());
+        player.addWindowListener(new windowListener());
 
         /*
         setupButton.addActionListener(new setupButtonListener());
@@ -53,6 +51,12 @@ public class Player {
         player.getContentPane().add(mainPanel, BorderLayout.CENTER);
         player.setSize(new Dimension(600,400));
         player.setVisible(true);
+    }
+    class windowListener extends WindowAdapter {
+        @Override
+        public void windowClosing(WindowEvent e) {
+            client.endStreaming();
+        }
     }
     class playButtonListener implements ActionListener {
         public void actionPerformed(ActionEvent e){
