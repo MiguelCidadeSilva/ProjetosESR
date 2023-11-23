@@ -4,6 +4,7 @@ import Nodes.Utils.Cods;
 import Nodes.Utils.Debug;
 import Protocols.Helper.HelperConnection;
 import Protocols.ProtocolBuildTree;
+import Protocols.ProtocolEndStreaming;
 import Protocols.ProtocolStartStreaming;
 import Protocols.ProtocolTransferContent;
 
@@ -14,7 +15,9 @@ import java.net.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class ServerNode {
@@ -23,9 +26,11 @@ public class ServerNode {
     private final Map<String, ReadWriteLock> resourceLocks;
     private final Map<String, List<InetAddress>> clientsBuildTree;
     private final Map<String, List<InetAddress>> bestNeighbours;
+    private final Map<String, InetAddress> streamNeighbour;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final ReadWriteLock lockTree = new ReentrantReadWriteLock();
     private final ReadWriteLock lockBestN = new ReentrantReadWriteLock();
+    private final Lock lockStreamN = new ReentrantLock();
 
     public ServerNode(String file) {
         try {
@@ -38,6 +43,7 @@ public class ServerNode {
         this.resourceLocks      = new HashMap<>();
         this.clientsBuildTree   = new HashMap<>();
         this.bestNeighbours     = new HashMap<>();
+        this.streamNeighbour    = new HashMap<>();
     }
 
     public void addResource(String resource) {
@@ -87,6 +93,12 @@ public class ServerNode {
         boolean res = false;
         lock.writeLock().lock();
         if(this.clientsResourceMap.containsKey(resource)){
+            this.lockStreamN.lock();
+            this.streamNeighbour.remove(resource);
+            this.lockBestN.writeLock().lock();
+            this.lockStreamN.unlock();
+            this.bestNeighbours.remove(resource);
+            this.lockBestN.writeLock().unlock();
             this.clientsResourceMap.remove(resource);
             this.resourceLocks.remove(resource);
             res= true;
@@ -147,7 +159,7 @@ public class ServerNode {
         }
         if(packet.getType() == Cods.codEndStream)
         {
-            Debug.printTask("Pacote de fim de streaming a apagar recurso");
+            //Debug.printTask("Pacote de fim de streaming a apagar recurso");
             this.removeResource(packet.getResource());
         }
     }
@@ -272,6 +284,9 @@ public class ServerNode {
             socket.close();
             Debug.printTask("Streaming do recurso " + resource + " irá ser feito a partir do " + ip);
             sucess = true;
+            this.lockStreamN.lock();
+            this.streamNeighbour.put(resource,neighbour);
+            this.lockStreamN.unlock();
         } catch (IOException ignored) {}
         return sucess;
 
@@ -313,6 +328,32 @@ public class ServerNode {
             throw new RuntimeException(e);
         }
     }
+    public void endStream(String resource,InetAddress neighbour) throws IOException {
+        Socket socket = new Socket(neighbour, Cods.portEndStreaming);
+        DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
+        ProtocolEndStreaming.encapsulate(new HelperConnection(resource,socket.getLocalAddress()),dos);
+        socket.close();
+    }
+    protected void endStreamNeighbour(String resource) throws IOException {
+        this.lockStreamN.lock();
+        InetAddress neighbour = this.streamNeighbour.get(resource);
+        this.lockStreamN.unlock();
+        endStream(resource,neighbour);
+    }
+    protected void endStreaming(Socket socket) {
+        try {
+            String ips = socket.getInetAddress().getHostAddress();
+            Debug.printLigacaoSucesso(ips);
+            DataInputStream dis = new DataInputStream(socket.getInputStream());
+            HelperConnection hc = ProtocolEndStreaming.decapsulate(dis);
+            socket.close();
+            boolean rm = this.removeClient(hc.name(),hc.address());
+            if(rm)
+                endStreamNeighbour(hc.name());
+        } catch (IOException  e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private void serverRequest() {
 	    Debug.printTask("Servidor request aberto");
@@ -342,6 +383,20 @@ public class ServerNode {
             throw new RuntimeException(e);
         }
     }
+
+    private void serverEndStreaming() {
+        Debug.printTask("Servidor end streaming aberto");
+        try(ServerSocket serverSocket = new ServerSocket(Cods.portEndStreaming))
+        {
+            while (true) {
+                Socket clientSocket = serverSocket.accept();
+                Thread t1 = new Thread(() -> endStreaming(clientSocket));
+                t1.start();
+            }
+        }catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
     private void serverMulticast() {
 	    Debug.printTask("Servidor multicast aberto");
         try (DatagramSocket socket = new DatagramSocket(Cods.portStreamingContent))
@@ -362,9 +417,11 @@ public class ServerNode {
         Thread taux1 = new Thread(this::serverRequest);
         Thread taux2 = new Thread(this::serverMulticast);
         Thread taux3 = new Thread(this::serverStartStreaming);
+        Thread taux4 = new Thread(this::serverEndStreaming);
 	    taux1.start();
         taux2.start();
 	    taux3.start();
-        return List.of(taux1,taux2,taux3);
+        taux4.start();
+        return List.of(taux1,taux2,taux3, taux4);
     }
 }

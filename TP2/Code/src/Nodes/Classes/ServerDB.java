@@ -5,6 +5,7 @@ import Nodes.Utils.TaskExecutor;
 import Nodes.Utils.VideoExtractor;
 import Protocols.Helper.HelperConnection;
 import Protocols.ProtocolBuildTree;
+import Protocols.ProtocolEndStreaming;
 import Protocols.ProtocolLoadContent;
 
 import java.io.DataInputStream;
@@ -14,11 +15,15 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class ServerDB {
     // private final Map<String,byte[]> content;
     // Carrega o conteudo dos ficheiros
     private final Map<String,String> content;
+    private final Map<String,Boolean> stop = new HashMap<>();
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
     public ServerDB(String file) {
         try {
             content = new HashMap<>();
@@ -35,6 +40,28 @@ public class ServerDB {
             throw new RuntimeException(e);
         }
     }
+    private boolean available(String resource) {
+        lock.readLock().lock();
+        boolean res = this.stop.get(resource);
+        lock.readLock().unlock();
+        return res;
+    }
+    private void addStream(String resource) {
+        lock.writeLock().lock();
+        this.stop.put(resource,true);
+        lock.writeLock().unlock();
+    }
+    private void removeStream(String resource) {
+        lock.writeLock().lock();
+        this.stop.remove(resource);
+        lock.writeLock().unlock();
+    }
+
+    private void endStreaming(HelperConnection hc) {
+        lock.writeLock().lock();
+        this.stop.put(hc.name(),false);
+        lock.writeLock().unlock();
+    }
     private void sendVideo(VideoExtractor ve, DataOutputStream dos, String destiny) throws InterruptedException {
         if(ve.hasFrames())
         {
@@ -42,34 +69,38 @@ public class ServerDB {
             t.start();
             int ss = 1;
             long sleep = 1000/ve.getFrameRate();
-            while (ve.framesLeft() > 1)
+            while (ve.framesLeft() > 1 && available(ve.getVideo()))
             {
                 int finalSs = ss;
-                t.submitTask(() -> {try {ProtocolLoadContent.encapsulateVideo(ve,dos,true,destiny, finalSs);} catch (IOException ignored) {}});
+                t.submitTask(() -> {try {ProtocolLoadContent.encapsulateVideo(ve,dos,true,destiny, finalSs);}  catch (IOException ignored) {}});
                 ss++;
                 Thread.sleep(sleep);
             }
             t.shutdown();
-            try {ProtocolLoadContent.encapsulateVideo(ve,dos,true,destiny,ss);} catch (IOException ignored) {};
+            if(available(ve.getVideo()))
+                try {ProtocolLoadContent.encapsulateVideo(ve,dos,true,destiny,ss);}  catch (IOException ignored) {};
         }
     }
+
     private void sendAudio(VideoExtractor ve, DataOutputStream dos, String destiny) throws InterruptedException {
         if (ve.hasAudio()) {
             TaskExecutor t = new TaskExecutor();
             t.start();
             int ss = 1;
-            while (ve.audioLeft() > 1) {
+            while (ve.audioLeft() > 1 && available(ve.getVideo())) {
                 int finalSs = ss;
-                t.submitTask(() -> {try {ProtocolLoadContent.encapsulateAudio(ve, dos, true, destiny, finalSs);} catch (IOException ignored) {}});
+                t.submitTask(() -> {try {ProtocolLoadContent.encapsulateAudio(ve, dos, true, destiny, finalSs);}  catch (IOException ignored) {}});
                 ss++;
                 Thread.sleep(1000);
             }
             t.shutdown();
-            try {ProtocolLoadContent.encapsulateAudio(ve, dos, true, destiny, ss);} catch (IOException ignored) {};
+            if(available(ve.getVideo()))
+                try {ProtocolLoadContent.encapsulateAudio(ve, dos, true, destiny, ss);} catch (IOException ignored) {};
         }
     }
     private void sendResource(String resource, DataOutputStream dos, String destiny) throws IOException, InterruptedException {
         Debug.printTask("Recurso " + resource + ": A começar streaming, ficheiro: " + content.get(resource));
+        this.addStream(resource);
         VideoExtractor ve = new VideoExtractor(resource,content.get(resource));
         Thread taudio = new Thread(() -> {try {sendAudio(ve,dos,destiny);} catch (InterruptedException ignored) {}});
         Thread tvideo = new Thread(() -> {try {sendVideo(ve,dos,destiny);} catch (InterruptedException ignored) {}});
@@ -78,6 +109,7 @@ public class ServerDB {
         taudio.join();
         tvideo.join();
         ProtocolLoadContent.encapsulateEndStream(ve,dos,true,destiny,1);
+        this.removeStream(resource);
         Debug.printTask("Recurso " + resource + ": terminou streaming");
     }
     public void repondeRP(Socket socket) {
@@ -116,6 +148,19 @@ public class ServerDB {
             else
                 ProtocolBuildTree.encapsulateAnswerNoFound(dos);
             socket.close();
+        } catch (IOException e) {
+            System.out.println("Erro ao atender o cliente " + socket.getInetAddress().getHostAddress() + ".");
+            throw new RuntimeException(e);
+        }
+    }
+    public void endStream(Socket socket) {
+        try {
+            Debug.printLigacaoSucesso(socket.getInetAddress().getHostAddress());
+            DataInputStream dis = new DataInputStream(socket.getInputStream());
+            HelperConnection hc = ProtocolEndStreaming.decapsulate(dis);
+            socket.close();
+            endStreaming(hc);
+
         } catch (IOException e) {
             System.out.println("Erro ao atender o cliente " + socket.getInetAddress().getHostAddress() + ".");
             throw new RuntimeException(e);

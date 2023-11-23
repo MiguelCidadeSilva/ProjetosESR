@@ -17,6 +17,7 @@ public class Player {
     JPanel mainPanel = new JPanel();
     JPanel buttonPanel = new JPanel();
     JLabel iconLabel = new JLabel();
+    private Client client;
     private Clip clip;
 
     public Player() {
@@ -72,6 +73,7 @@ public class Player {
             if (clip != null && clip.isRunning()) {
                 clip.stop();
             }
+            client.endStreaming();
         }
     }
     public void updateFrame(byte[] frame) {

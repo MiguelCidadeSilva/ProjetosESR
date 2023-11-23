@@ -34,13 +34,27 @@ public class ServerDBExec {
         }catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
 
+    public static void endStream(ServerDB sdb) {
+        try(ServerSocket serverSocket = new ServerSocket(Cods.portEndStreaming))
+        {
+            while (true) {
+                Socket clientSocket = serverSocket.accept();
+                Thread t1 = new Thread(() -> sdb.endStream(clientSocket));
+                t1.start();
+            }
+        }catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
     public static void main(String [] args) {
         ServerDB sdb = new ServerDB(args[0]);
         System.out.println("ServerDB is listening at the ports " + Cods.portDB + " and " + Cods.portSOConnections);
         Thread tcontent =  new Thread(() -> deliverContent(sdb));
+        Thread tendstream =  new Thread(() -> endStream(sdb));
         tcontent.start();
+        tendstream.start();
         deliverTree(sdb);
     }
 }

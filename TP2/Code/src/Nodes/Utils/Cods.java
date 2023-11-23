@@ -7,6 +7,7 @@ public class Cods {
     public static final int portSOConnections = 8002;
     public static final int portStartStreaming = 8003;
     public static final int portStreamingContent = 8004;
+    public static final int portEndStreaming = 8005;
 
     public static final int codAudio = 0;
     public static final int codVideo = 1;

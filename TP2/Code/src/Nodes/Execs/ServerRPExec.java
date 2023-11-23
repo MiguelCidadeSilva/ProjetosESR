@@ -18,16 +18,31 @@ public class ServerRPExec {
         String b1str = Byte.toString(b1);
         System.out.println("Código recebido = " + b1str);
     }
+    public static void testEndStream(ServerRP rp, String resource) throws IOException, InterruptedException {
+        Thread t = new Thread(() -> {
+            try {
+                rp.addResourceRP(resource,InetAddress.getByName("10.0.11.10"),true);
+            } catch (UnknownHostException e) {
+                throw new RuntimeException(e);
+            }
+        });
+        t.start();
+        Thread.sleep(3000);
+        rp.endStream(resource,rp.getNeighbour(0));
+    }
 
     public static void main(String [] args) throws InterruptedException, IOException {
         ServerRP rp = new ServerRP(args[0]);
         if(args.length > 1) {
             switch (args[1]) {
                 case "0":
-                    testStreamRPDB(rp, args[2]);
+                    testAskHasResourceDB(rp, args[2]);
                     break;
                 case "1":
-                    testAskHasResourceDB(rp, args[2]);
+                    testStreamRPDB(rp, args[2]);
+                    break;
+                case "2":
+                    testEndStream(rp,args[2]);
                     break;
             }
         }

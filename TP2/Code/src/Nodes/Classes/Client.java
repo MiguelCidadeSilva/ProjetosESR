@@ -2,7 +2,9 @@ package Nodes.Classes;
 
 import Nodes.Utils.Cods;
 import Nodes.Utils.Debug;
+import Protocols.Helper.HelperConnection;
 import Protocols.ProtocolBuildTree;
+import Protocols.ProtocolEndStreaming;
 import Protocols.ProtocolStartStreaming;
 import Protocols.ProtocolTransferContent;
 
@@ -12,13 +14,15 @@ import java.net.*;
 public class Client {
     private final InetAddress ipclient;
     private final InetAddress ipneighbour;
+    private final String resource;
 
-    public Client(InetAddress ipclient, InetAddress ipneighbour) {
+    public Client(InetAddress ipclient, InetAddress ipneighbour, String resource) {
         this.ipclient = ipclient;
         this.ipneighbour = ipneighbour;
+        this.resource = resource;
     }
 
-    public void start(String resource) throws IOException {
+    public void start() throws IOException {
         Debug.printTask("Inicio de criação da árvore.");
         byte tree = requestTree(resource);
         switch (tree) {
@@ -40,7 +44,7 @@ public class Client {
         }
     }
 
-    private byte requestTree(String resource) throws IOException {
+    private byte requestTree(String resource){
         Debug.printTask("Criação do socket TCP");
         try (
                 Socket socket = new Socket(ipneighbour, Cods.portSOConnections);
@@ -62,13 +66,25 @@ public class Client {
 
     }
 
+    protected void endStreaming(){
+        Debug.printTask("Criação do socket TCP para terminar streaming");
+        try (
+                Socket socket = new Socket(ipneighbour, Cods.portEndStreaming);
+                OutputStream outputStream = socket.getOutputStream();
+                DataOutputStream dos = new DataOutputStream(outputStream);
+        ) {
+            Debug.printTask("Encapsulamento dos dados.");
+            ProtocolEndStreaming.encapsulate(new HelperConnection(resource,ipclient),dos);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
     private void startStreaming(String resource){
         Debug.printTask("Criação do socket TCP");
         try (
                 Socket socket = new Socket(ipneighbour, Cods.portStartStreaming);
                 OutputStream outputStream = socket.getOutputStream();
                 DataOutputStream dos = new DataOutputStream(outputStream);
-                InputStream inputStream = socket.getInputStream();
         ) {
             Debug.printTask("Encapsulamento dos dados.");
             ProtocolStartStreaming.encapsulate(resource,dos);
