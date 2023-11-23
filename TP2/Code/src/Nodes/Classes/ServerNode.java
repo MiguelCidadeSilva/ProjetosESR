@@ -273,6 +273,12 @@ public class ServerNode {
             throw new RuntimeException(e);
         }
     }
+    public void addNeighbour(InetAddress neighbour, String resource)
+    {
+	this.lockStreamN.lock();
+    	this.streamNeighbour.put(resource,neighbour);
+        this.lockStreamN.unlock();
+    }
     private boolean contactNeighbourStartStreaming(InetAddress neighbour, String resource) {
         boolean sucess = false;
         try {
@@ -284,9 +290,7 @@ public class ServerNode {
             socket.close();
             Debug.printTask("Streaming do recurso " + resource + " irá ser feito a partir do " + ip);
             sucess = true;
-            this.lockStreamN.lock();
-            this.streamNeighbour.put(resource,neighbour);
-            this.lockStreamN.unlock();
+            this.addNeighbour(neighbour,resource);
         } catch (IOException ignored) {}
         return sucess;
 

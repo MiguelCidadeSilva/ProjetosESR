@@ -17,7 +17,8 @@ public class Player {
     private Client client;
     private Clip clip;
 
-    public Player() {
+    public Player(Client c) {
+	this.client = c;
         player.addWindowListener(new WindowAdapter() {
             public void windowClosing(WindowEvent e) {
                 System.exit(0);

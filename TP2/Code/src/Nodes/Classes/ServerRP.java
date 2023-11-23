@@ -41,6 +41,7 @@ public class ServerRP extends ServerNode{
             }
             else
             {
+		this.addNeighbour(server,resource);
                 while(packet.getType() != Cods.codEndStream) {
                     Debug.printStramingPacket(packet);
                     packet = ProtocolLoadContent.decapsulateContent(dis);

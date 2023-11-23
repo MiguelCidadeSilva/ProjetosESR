@@ -94,7 +94,7 @@ public class Client {
     }
 
     private void getContent(){
-        Player p = new Player();
+        Player p = new Player(this);
         Buffer b = new Buffer(p);
         Debug.printTask("Criação do socket UDP");
         try (DatagramSocket socket = new DatagramSocket(Cods.portStreamingContent))
