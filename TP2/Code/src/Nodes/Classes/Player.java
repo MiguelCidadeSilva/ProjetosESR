@@ -8,9 +8,7 @@ import java.io.*;
 public class Player {
     JFrame player = new JFrame("Player");
     JButton setupButton = new JButton("Setup");
-    JButton playButton = new JButton("Play");
-    JButton pauseButton = new JButton("Pause");
-    JButton tearButton = new JButton("Teardown");
+    JButton pauseButton = new JButton("Stop Stream");
     JPanel mainPanel = new JPanel();
     JPanel buttonPanel = new JPanel();
     JLabel iconLabel = new JLabel();
@@ -27,20 +25,14 @@ public class Player {
 
         buttonPanel.setLayout(new GridLayout(1,0));
         // buttonPanel.add(setupButton);
-        buttonPanel.add(playButton);
-        buttonPanel.add(pauseButton);
-        buttonPanel.add(tearButton);
 
-        playButton.addActionListener(new playButtonListener());
-        tearButton.addActionListener(new tearButtonListener());
+        buttonPanel.add(pauseButton);
+
         pauseButton.addActionListener(new pauseButtonListener());
         player.addWindowListener(new windowListener());
 
         /*
         setupButton.addActionListener(new setupButtonListener());
-
-
-
          */
         iconLabel.setIcon(null);
         mainPanel.setLayout(null);
