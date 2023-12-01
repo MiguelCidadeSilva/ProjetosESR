@@ -2,6 +2,7 @@ package Nodes.Classes;
 
 import Nodes.Utils.Cods;
 import Nodes.Utils.Debug;
+import Nodes.Utils.Tuple;
 import Protocols.Helper.HelperConnection;
 import Protocols.ProtocolBuildTree;
 import Protocols.ProtocolEndStreaming;
@@ -28,7 +29,7 @@ public class ServerNode {
     // Gerir Processos loops
     private final Map<String, List<InetAddress>> clientsBuildTree;
     // Melhores vizinhos para um certo conteudo.
-    private final Map<String, List<InetAddress>> bestNeighbours;
+    private final Map<String, Tuple<List<InetAddress>,Long>> bestNeighbours;
     private final Map<String, InetAddress> streamNeighbour;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final ReadWriteLock lockTree = new ReentrantReadWriteLock();
@@ -121,7 +122,7 @@ public class ServerNode {
     }
     protected List<InetAddress> getBestNeighbours(String resource) {
         this.lockBestN.readLock().lock();
-        List<InetAddress> bestneighbours = this.bestNeighbours.get(resource);
+        List<InetAddress> bestneighbours = this.bestNeighbours.get(resource).getValue1();
         this.lockBestN.readLock().unlock();
         return bestneighbours != null ? new ArrayList<>(bestneighbours) : null;
     }
@@ -242,7 +243,7 @@ public class ServerNode {
                     System.out.println("Encontrou vizinhos com recursos. Responder com código " + ProtocolBuildTree.found);
                     res = ProtocolBuildTree.found;
                     this.lockBestN.writeLock().lock();
-                    this.bestNeighbours.put(resource,sortedNeighbours);
+                    this.bestNeighbours.put(resource,new Tuple<>(sortedNeighbours,System.currentTimeMillis()));
                     this.lockBestN.writeLock().unlock();
                 }
                 else
@@ -428,7 +429,10 @@ public class ServerNode {
                 Thread.sleep(timeout);
                 this.lockBestN.writeLock().lock();
                 lock.readLock().lock();
-                List<String> recs = this.bestNeighbours.keySet().stream().filter(rec -> !this.streamNeighbour.containsKey(rec)).toList();
+                List<String> recs = this.bestNeighbours.keySet().stream()
+                        .filter(rec -> !this.streamNeighbour.containsKey(rec))
+                        .filter(rec -> timeout > this.bestNeighbours.get(rec).getValue2())
+                        .toList();
                 recs.forEach(this.bestNeighbours::remove);
                 this.lockBestN.writeLock().unlock();
                 lock.readLock().unlock();
