@@ -84,7 +84,7 @@ public class Main {
         // testUDP(hcw);
         // testTCP(hcw);
 
-        VideoExtractor ve = new VideoExtractor("videoA.mp4","Testfiles/DBFiles/videoA.mp4");
+        VideoExtractor ve = new VideoExtractor("videoA.mp4","Testfiles/DBFiles/videoA.mp4",true);
         // System.out.println(ve.hasFrames());
         // System.out.println(ve.hasAudio());
         // System.out.println(ve.getFrameRate());
@@ -95,7 +95,7 @@ public class Main {
         // System.out.println(frames.length);
         //System.out.println(compressed.length);
         //System.out.println(decompressed.length);
-        Player p = new Player();
+        Player p = new Player(null);
         Thread t = new Thread(() -> {
             try {
                 updateAudio(ve, p);

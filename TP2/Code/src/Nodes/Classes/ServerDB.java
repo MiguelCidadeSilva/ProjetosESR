@@ -24,8 +24,10 @@ public class ServerDB {
     private final Map<String,String> content;
     private final Map<String,Boolean> stop = new HashMap<>();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
-    public ServerDB(String file) {
+    private final boolean repeat;
+    public ServerDB(String file, boolean repeat) {
         try {
+            this.repeat = repeat;
             content = new HashMap<>();
             List<String> resources = Files.readAllLines(Paths.get(file));
             for(String resource : resources) {
@@ -101,7 +103,7 @@ public class ServerDB {
     private void sendResource(String resource, DataOutputStream dos, String destiny) throws IOException, InterruptedException {
         Debug.printTask("Recurso " + resource + ": A começar streaming, ficheiro: " + content.get(resource));
         this.addStream(resource);
-        VideoExtractor ve = new VideoExtractor(resource,content.get(resource));
+        VideoExtractor ve = new VideoExtractor(resource,content.get(resource),repeat);
         Thread taudio = new Thread(() -> {try {sendAudio(ve,dos,destiny);} catch (InterruptedException ignored) {}});
         Thread tvideo = new Thread(() -> {try {sendVideo(ve,dos,destiny);} catch (InterruptedException ignored) {}});
         taudio.start();

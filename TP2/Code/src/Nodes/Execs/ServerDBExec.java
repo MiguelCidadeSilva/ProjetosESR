@@ -49,7 +49,7 @@ public class ServerDBExec {
         }
     }
     public static void main(String [] args) {
-        ServerDB sdb = new ServerDB(args[0]);
+        ServerDB sdb = new ServerDB(args[0],args[1].equals("1"));
         System.out.println("ServerDB is listening at the ports " + Cods.portDB + " and " + Cods.portSOConnections);
         Thread tcontent =  new Thread(() -> deliverContent(sdb));
         Thread tendstream =  new Thread(() -> endStream(sdb));

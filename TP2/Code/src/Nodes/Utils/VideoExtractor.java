@@ -10,6 +10,7 @@ public class VideoExtractor {
     private Queue<byte[]> frames;
     private Queue<byte[]> audio;
     private int frameRate;
+    private final boolean repeat;
 
     private final int segundosAudio = 1;
     private Queue<byte[]> readBytesDirectory(String dir) throws IOException {
@@ -69,8 +70,9 @@ public class VideoExtractor {
         runProcess(command1);
         runProcess(command2);
     }
-    public VideoExtractor(String resource, String file) throws IOException, InterruptedException {
+    public VideoExtractor(String resource, String file, boolean repeat) throws IOException, InterruptedException {
         this.video = resource;
+        this.repeat = repeat;
         String videoFolder = "../Content/video" + resource;
         String audioFolder = "../Content/audio" + resource;
         createDirs(videoFolder,audioFolder);
@@ -87,11 +89,17 @@ public class VideoExtractor {
     public int framesLeft() {return this.frames.size();}
     public int audioLeft() {return this.audio.size();}
     public byte[] nextAudio() {
-        return this.audio.poll();
+        byte[] res = this.audio.poll();
+        if(this.repeat)
+            this.audio.add(res);
+        return res;
     }
 
     public byte[] nextFrame() {
-        return this.frames.poll();
+        byte[] res = this.frames.poll();
+        if(this.repeat)
+            this.frames.add(res);
+        return res;
     }
 
     public boolean hasAudio() {
@@ -108,14 +116,6 @@ public class VideoExtractor {
 
     public int getFrameRate() {
         return frameRate;
-    }
-
-    public List<byte[]> nextFrames() {
-        int size = Math.min(frameRate, this.frames.size());
-        List<byte[]> nextFrames = new ArrayList<>(size);
-        for(int i = 0; i < size; i++)
-            nextFrames.add(nextFrame());
-        return nextFrames;
     }
 
     public static List<byte[]> splitByteArray(byte[] data, int chunkSize) {

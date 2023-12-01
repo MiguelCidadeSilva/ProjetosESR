@@ -22,15 +22,19 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class ServerNode {
     private final List<InetAddress> neighbours;
+    // Clientes que querem o stream de um certo conteudo
     private final Map<String, List<InetAddress>> clientsResourceMap;
     private final Map<String, ReadWriteLock> resourceLocks;
+    // Gerir Processos loops
     private final Map<String, List<InetAddress>> clientsBuildTree;
+    // Melhores vizinhos para um certo conteudo.
     private final Map<String, List<InetAddress>> bestNeighbours;
     private final Map<String, InetAddress> streamNeighbour;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final ReadWriteLock lockTree = new ReentrantReadWriteLock();
     private final ReadWriteLock lockBestN = new ReentrantReadWriteLock();
     private final Lock lockStreamN = new ReentrantLock();
+    private final long timeout = 5000;
 
     public ServerNode(String file) {
         try {
@@ -340,9 +344,10 @@ public class ServerNode {
     }
     protected void endStreamNeighbour(String resource) throws IOException {
         this.lockStreamN.lock();
-        InetAddress neighbour = this.streamNeighbour.get(resource);
+        InetAddress neighbour = this.streamNeighbour.remove(resource);
         this.lockStreamN.unlock();
-        endStream(resource,neighbour);
+        if(neighbour != null)
+            endStream(resource,neighbour);
     }
     protected void endStreaming(Socket socket) {
         try {
@@ -417,15 +422,34 @@ public class ServerNode {
             throw new RuntimeException(e);
         }
     }
+    private void manageTimeouts() {
+        try {
+            while (true) {
+                Thread.sleep(timeout);
+                this.lockBestN.writeLock().lock();
+                lock.readLock().lock();
+                List<String> recs = this.bestNeighbours.keySet().stream().filter(rec -> !this.streamNeighbour.containsKey(rec)).toList();
+                recs.forEach(this.bestNeighbours::remove);
+                this.lockBestN.writeLock().unlock();
+                lock.readLock().unlock();
+                Debug.printTask("Pedidos de buildtrees para estes recursos foram limpos: " + recs);
+            }
+        }
+        catch (InterruptedException e) {
+            System.out.println("A terminar thread de manageTimeOuts");
+        }
+    }
     public List<Thread> initServer(){
         Thread taux1 = new Thread(this::serverRequest);
         Thread taux2 = new Thread(this::serverMulticast);
         Thread taux3 = new Thread(this::serverStartStreaming);
         Thread taux4 = new Thread(this::serverEndStreaming);
+        Thread taux5 = new Thread(this::manageTimeouts);
 	    taux1.start();
         taux2.start();
 	    taux3.start();
         taux4.start();
-        return List.of(taux1,taux2,taux3, taux4);
+        taux5.start();
+        return List.of(taux1,taux2,taux3, taux4, taux5);
     }
 }
