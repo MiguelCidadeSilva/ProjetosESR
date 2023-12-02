@@ -183,7 +183,7 @@ public class ServerNode {
             Long endTime = System.currentTimeMillis();
             Long delay = endTime - startTime;
             if (codigo == ProtocolBuildTree.found) {
-                Debug.printTask("Vizinho " + ip + " contém o conteudo");
+                Debug.printTask("Vizinho " + ip + " contém o conteudo e respondeu em "+delay+" ms.");
                 responseTime.put(tid, delay);
             }
             else if (codigo == ProtocolBuildTree.loop) {
@@ -193,7 +193,7 @@ public class ServerNode {
                 Debug.printTask("Vizinho " + ip + " não encontrou o recurso.");
             }
         } catch (IOException e) {
-            Debug.printError("ao estabelecer ligacao com o vizinho " + ip );
+            Debug.printError("Erro ao estabelecer ligacao com o vizinho " + ip );
         }
     }
     public byte receiveRequest(HelperConnection hc) throws InterruptedException {
@@ -238,9 +238,10 @@ public class ServerNode {
                 for(Thread t : list)
                     t.join();
                 List<InetAddress> sortedNeighbours = responseTime.entrySet().stream().sorted(Map.Entry.comparingByValue()).map(Map.Entry::getKey).map(neighbourMap::get).toList();
-                Debug.printTask("Vizinhos ordenados: " + sortedNeighbours.stream().map(InetAddress::getHostAddress).toList());
                 if(!sortedNeighbours.isEmpty()) {
                     System.out.println("Encontrou vizinhos com recursos. Responder com código " + ProtocolBuildTree.found);
+                    Debug.printTask("Melhor tempo de resposta = "+responseTime.values().stream().findFirst() + "obtido pelo vizinho "+sortedNeighbours.stream().findFirst());
+                    Debug.printTask("Vizinhos ordenados com base no tempo de resposta: " + sortedNeighbours.stream().map(InetAddress::getHostAddress).toList());
                     res = ProtocolBuildTree.found;
                     this.lockBestN.writeLock().lock();
                     this.bestNeighbours.put(resource,new Tuple<>(sortedNeighbours,System.currentTimeMillis()));
@@ -310,7 +311,7 @@ public class ServerNode {
         	this.addResource(resource);
         	this.addClient(resource,ip);
        		List<InetAddress> bestneighbours = this.getBestNeighbours(resource);
-        	Debug.printTask("Vizinhos que a contactar :" + bestneighbours.stream().map(InetAddress::getHostAddress).toList());
+        	Debug.printTask("Vizinhos a contactar :" + bestneighbours.stream().map(InetAddress::getHostAddress).toList());
         	for(int i = 0; i < bestneighbours.size() && !sucess; i++)
             	sucess = contactNeighbourStartStreaming(bestneighbours.get(i),resource);
         }
