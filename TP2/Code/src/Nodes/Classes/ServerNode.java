@@ -150,7 +150,7 @@ public class ServerNode {
     public void multicast(StreamingPacket packet) throws IOException {
         List<InetAddress> clients = getClientList(packet);
         DatagramPacket dp = ProtocolTransferContent.encapsulate(packet);
-        Debug.printTask("A fazer multicast do recurso " + packet.getResource() + ", com o pacote "+packet+" para os clientes: " + clients.stream().map(InetAddress::getHostAddress).toList());
+        //Debug.printTask("A fazer multicast do recurso " + packet.getResource() + ", com o pacote "+packet+" para os clientes: " + clients.stream().map(InetAddress::getHostAddress).toList());
         for (InetAddress client : clients) {
             DatagramSocket ds = new DatagramSocket();
             DatagramPacket clonedPacket = new DatagramPacket(

@@ -106,7 +106,7 @@ public class Client {
                 DatagramPacket receivePacket = new DatagramPacket(buffer, buffer.length);
                 socket.receive(receivePacket);
                 StreamingPacket packet = ProtocolTransferContent.decapsulate(receivePacket);
-                Debug.printTask("Pacote de streaming recebido" + packet);
+                //Debug.printTask("Pacote de streaming recebido" + packet);
                 b.receive(packet);
                 streaming = packet.getType() != Cods.codEndStream;
 	        }

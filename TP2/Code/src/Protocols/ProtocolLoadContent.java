@@ -41,7 +41,7 @@ public class ProtocolLoadContent{
         LocalTime currentTime = LocalTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss");
         String formattedTime = currentTime.format(formatter);
-        Debug.printTask(formattedTime + " | Encapsular pacote " + streamingPacket + " para o destino: " + destiny + ". Restam " + number + " pacotes de " + streamingPacket.getTask());
+       // Debug.printTask(formattedTime + " | Encapsular pacote " + streamingPacket + " para o destino: " + destiny + ". Restam " + number + " pacotes de " + streamingPacket.getTask());
         return streamingPacket.writer();
     }
     public static void encapsulateEndStream(VideoExtractor ve, DataOutputStream dos,boolean flush, String destiny, int sequenceNumber) throws IOException {
@@ -81,7 +81,7 @@ public class ProtocolLoadContent{
         makeFlush(dos,flush);
     }
     public static StreamingPacket decapsulateContent(DataInputStream dis) throws IOException {
-        Debug.printTask("À espera de pacotes de streaming");
+        //Debug.printTask("À espera de pacotes de streaming");
         HelperContentReader hcr = HelperProtocols.readContentTCP(dis);
         return new StreamingPacket(hcr);
     }
