@@ -75,12 +75,12 @@ public class ServerRP extends ServerNode{
             for(int i = 0; i < dbServers.size() && noFound; i++)
                 noFound = contactServerDB(dbServers.get(i),resource);
             if(noFound)
-                Debug.printError("Recurso não existe na base de dados");
+                Debug.printError("Recurso não existe na DB.");
             return !noFound;
         }
         else
         {
-	        Debug.printTask("RP contém o conteudo. Não vai fazer pedido ao servidor DB");
+	        Debug.printTask("RP tem o conteudo. Não faz pedido ao servidor DB");
             this.addClient(resource,client);
         }
         return true;

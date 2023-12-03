@@ -101,7 +101,7 @@ public class ServerDB {
         }
     }
     private void sendResource(String resource, DataOutputStream dos, String destiny) throws IOException, InterruptedException {
-        Debug.printTask("Recurso " + resource + ": A começar streaming, ficheiro: " + content.get(resource));
+        Debug.printTask(" A iniciar streaming do recurso "+ resource+", do ficheiro: " + content.get(resource));
         this.addStream(resource);
         VideoExtractor ve = new VideoExtractor(resource,content.get(resource),repeat);
         Thread taudio = new Thread(() -> {try {sendAudio(ve,dos,destiny);} catch (InterruptedException ignored) {}});

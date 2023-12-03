@@ -53,7 +53,11 @@ public class StreamingPacket {
     }
     @Override
     public String toString() {
-        return "(" + this.resource + ","  + this.getTask()  + "," + this.getSequenceNumber() + "," + this.getNrPackets() + "," + this.getContent().length + " bytes)";
+        return "(Rec: " + this.resource +
+                ", Task: " + this.getTask() +
+                ", NSeq: " + this.getSequenceNumber() +
+                ", NP: " + this.getNrPackets() +
+                ", T: " + this.getContent().length + " bytes)";
     }
 
     public int getSequenceNumber() {

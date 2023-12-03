@@ -53,20 +53,20 @@ public class Player {
     }
     class playButtonListener implements ActionListener {
         public void actionPerformed(ActionEvent e){
-            System.out.println("Play Button pressed !");
+            System.out.println("Botão de Play pressionado!");
         }
     }
 
     class tearButtonListener implements ActionListener {
         public void actionPerformed(ActionEvent e){
 
-            System.out.println("Teardown Button pressed !");
+            System.out.println("Botão Teardown pressionado!");
             System.exit(0);
         }
     }
     class pauseButtonListener implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-            System.out.println("Pause Button pressed !");
+            System.out.println("Butão de pausa pressionado!");
             if (clip != null && clip.isRunning()) {
                 clip.stop();
             }

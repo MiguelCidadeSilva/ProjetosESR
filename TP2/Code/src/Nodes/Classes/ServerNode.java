@@ -150,7 +150,12 @@ public class ServerNode {
     public void multicast(StreamingPacket packet) throws IOException {
         List<InetAddress> clients = getClientList(packet);
         DatagramPacket dp = ProtocolTransferContent.encapsulate(packet);
-        //Debug.printTask("A fazer multicast do recurso " + packet.getResource() + ", com o pacote "+packet+" para os clientes: " + clients.stream().map(InetAddress::getHostAddress).toList());
+        List <String> clientPrint= clients.stream().map(InetAddress::getHostAddress).toList();
+        if (clientPrint.size() <= 3) {
+            Debug.printTask("Multicast " + packet.getResource() + " | Pacote " + packet + " | Clientes " + clientPrint);
+        } else {
+            Debug.printTask("Multicast " + packet.getResource() + " | Pacote " + packet + " | Clientes " + clientPrint.subList(0, 3)+"...");
+        }
         for (InetAddress client : clients) {
             DatagramSocket ds = new DatagramSocket();
             DatagramPacket clonedPacket = new DatagramPacket(
@@ -164,7 +169,7 @@ public class ServerNode {
         }
         if(packet.getType() == Cods.codEndStream)
         {
-            //Debug.printTask("Pacote de fim de streaming a apagar recurso");
+            Debug.printTask("Pacote de fim de streaming e apagar recurso");
             this.removeResource(packet.getResource());
         }
     }
@@ -187,10 +192,10 @@ public class ServerNode {
                 responseTime.put(tid, delay);
             }
             else if (codigo == ProtocolBuildTree.loop) {
-                Debug.printTask("Loop com o Vizinho " + ip );
+                Debug.printTask("Loop no Vizinho " + ip );
             }
             else {
-                Debug.printTask("Vizinho " + ip + " não encontrou o recurso.");
+                Debug.printTask("Vizinho " + ip + " não encontrou recurso.");
             }
         } catch (IOException e) {
             Debug.printError("Erro ao estabelecer ligacao com o vizinho " + ip );
@@ -294,7 +299,7 @@ public class ServerNode {
             DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
             ProtocolStartStreaming.encapsulate(resource,dos);
             socket.close();
-            Debug.printTask("Streaming do recurso " + resource + " irá ser feito a partir do " + ip);
+            Debug.printTask("Streaming do recurso " + resource + " a partir do ip " + ip);
             sucess = true;
             this.addNeighbour(neighbour,resource);
         } catch (IOException ignored) {}
@@ -305,7 +310,7 @@ public class ServerNode {
         String resource = hc.name();
 	InetAddress ip = hc.address();
 	boolean sucess = false;
- 	Debug.printTask("A adicionar cliente " + ip.getHostAddress() + " para streaming do conteudo " + resource);
+ 	Debug.printTask("A adicionar cliente " + ip.getHostAddress() + " para streaming do " + resource);
  	if(!this.hasResource(resource))
         {
         	this.addResource(resource);
